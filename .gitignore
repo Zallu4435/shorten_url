@@ -1,0 +1,104 @@
+# ─────────────────────────────────────────────
+# Python / Django
+# ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Static & media (generated at runtime)
+backend/staticfiles/
+backend/media/
+
+# Migrations — keep these, they define the DB schema
+# DO NOT add migrations/ to .gitignore
+
+# ─────────────────────────────────────────────
+# Environment Variables — NEVER commit secrets
+# ─────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example        # Keep the example template
+
+# ─────────────────────────────────────────────
+# Next.js / Node
+# ─────────────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+!frontend/.env.example
+
+# npm / yarn / pnpm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ─────────────────────────────────────────────
+# IDEs & Editors
+# ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────────────────────
+# Testing & Coverage
+# ─────────────────────────────────────────────
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+.tox/
+
+# ─────────────────────────────────────────────
+# Type checking
+# ─────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# ─────────────────────────────────────────────
+# Miscellaneous
+# ─────────────────────────────────────────────
+*.bak
+*.tmp
+.cache/
