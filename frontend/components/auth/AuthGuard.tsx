@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { AppLoading } from "@/components/shared/AppLoading";
 
 interface AuthGuardProps {
     children: React.ReactNode;
@@ -10,11 +11,11 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
-    const { user, loading, isLoggedIn } = useAuth();
+    const { user, loading, isLoggedIn, isLoggingOut } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (loading) return;
+        if (loading || isLoggingOut) return;
         if (!isLoggedIn) {
             router.replace("/login");
             return;
@@ -22,18 +23,16 @@ export function AuthGuard({ children, requireAdmin = false }: AuthGuardProps) {
         if (requireAdmin && !user?.isAdmin) {
             router.replace("/dashboard");
         }
-    }, [loading, isLoggedIn, user, requireAdmin, router]);
+    }, [loading, isLoggedIn, user, requireAdmin, isLoggingOut, router]);
 
     // Show full-screen loader while auth resolves
     if (loading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
-                    <p className="text-sm text-muted-foreground animate-pulse">Loading…</p>
-                </div>
-            </div>
-        );
+        return <AppLoading message="Synchronizing..." />;
+    }
+
+    // Show loading during logout
+    if (isLoggingOut) {
+        return <AppLoading message="Signing out safely..." />;
     }
 
     // Not logged in — render nothing while redirect fires

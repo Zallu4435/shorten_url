@@ -1,6 +1,6 @@
 // JWT + localStorage helpers
-const ACCESS_TOKEN_KEY = "su_access_token";
-const REFRESH_TOKEN_KEY = "su_refresh_token";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "@/lib/constants/auth";
+
 
 export function getAccessToken(): string | null {
     if (typeof window === "undefined") return null;

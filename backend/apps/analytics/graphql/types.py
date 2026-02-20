@@ -147,6 +147,9 @@ class UserAnalyticsOverviewType(graphene.ObjectType):
     total_urls = graphene.Int(required=True)
     total_clicks = graphene.Int(required=True)
     unique_clicks = graphene.Int(required=True)
+    clicks_today = graphene.Int(required=True)
+    clicks_this_week = graphene.Int(required=True)
+    clicks_this_month = graphene.Int(required=True)
     top_urls = graphene.List(
         "apps.urls.graphql.types.ShortURLType",
         description="Top 5 most-clicked short URLs."

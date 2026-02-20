@@ -33,6 +33,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
+    isLoggingOut: boolean;
     refetchUser: () => void;
 }
 
@@ -42,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const apolloClient = useApolloClient();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const [loginMutation] = useMutation(LOGIN_MUTATION);
     const [registerMutation] = useMutation(REGISTER_MUTATION);
@@ -99,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     const logout = useCallback(async () => {
+        setIsLoggingOut(true);
         const refreshToken = getRefreshToken();
         if (refreshToken) {
             try {
@@ -110,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearTokens();
         setUser(null);
         await apolloClient.clearStore();
+        setIsLoggingOut(false);
     }, [logoutMutation, apolloClient]);
 
     const refetchUser = useCallback(() => {
@@ -118,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider
-            value={{ user, loading, isLoggedIn: !!user, login, register, logout, refetchUser }}
+            value={{ user, loading, isLoggedIn: !!user, login, register, logout, isLoggingOut, refetchUser }}
         >
             {children}
         </AuthContext.Provider>

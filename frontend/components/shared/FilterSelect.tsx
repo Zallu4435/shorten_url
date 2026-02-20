@@ -28,7 +28,7 @@ export function FilterSelect({
 }: FilterSelectProps) {
     return (
         <Select value={value} onValueChange={onValueChange}>
-            <SelectTrigger className={cn("w-full h-12 bg-muted/30 border-border/50 rounded-2xl focus:ring-primary/20 text-sm font-bold gap-3 px-4 shadow-sm transition-all hover:bg-muted/50 outline-none", className)}>
+            <SelectTrigger className={cn("w-full h-12 bg-muted/30 border-border/50 rounded-2xl focus:ring-primary/20 text-sm font-bold gap-3 px-4 shadow-sm transition-all hover:bg-muted/50 outline-none cursor-pointer", className)}>
                 <div className="flex items-center gap-3">
                     <Icon className="h-4 w-4 text-muted-foreground" />
                     <SelectValue placeholder={placeholder} />

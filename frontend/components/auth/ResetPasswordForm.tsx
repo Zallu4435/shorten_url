@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
-
 export function ResetPasswordForm() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +36,7 @@ export function ResetPasswordForm() {
             setIsSuccess(true);
             toast.success("Password updated successfully!");
             setTimeout(() => router.push("/login"), 3000);
-        } catch (err) {
+        } catch {
             toast.error("Failed to reset password.");
         }
     };
@@ -46,26 +45,24 @@ export function ResetPasswordForm() {
 
     if (isSuccess) {
         return (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center flex flex-col items-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-600 shadow-2xl shadow-violet-600/40">
-                    <ShieldCheck className="h-10 w-10 text-white" />
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 text-center flex flex-col items-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-2xl shadow-primary/30">
+                    <ShieldCheck className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <div className="space-y-4">
-                    <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-                        Security <br /> Restored.
+                <div className="space-y-2">
+                    <h2 className="text-2xl font-black tracking-tight text-foreground">
+                        Security Restored.
                     </h2>
-                    <p className="text-lg font-medium text-zinc-400">
-                        Your password has been changed. <br /> Redirecting you to sign in...
+                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+                        Your password has been changed.<br />Redirecting you to sign in...
                     </p>
                 </div>
-                <div className="w-full pt-4">
-                    <Button
-                        asChild
-                        className="w-full h-14 rounded-2xl bg-zinc-800 text-white font-black"
-                    >
-                        <Link href="/login">Sign in Now</Link>
-                    </Button>
-                </div>
+                <Button
+                    asChild
+                    className="w-full h-12 rounded-xl bg-muted text-foreground font-black hover:bg-muted/70 transition-all"
+                >
+                    <Link href="/login">Sign in Now</Link>
+                </Button>
             </div>
         );
     }
@@ -73,27 +70,27 @@ export function ResetPasswordForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                    <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-                        Reset <br /> Password
+                <div className="space-y-1.5">
+                    <h2 className="text-2xl font-black tracking-tight text-foreground">
+                        Reset password
                     </h2>
-                    <p className="text-base font-medium text-zinc-400 leading-relaxed">
+                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">
                         Secure your account with a strong new password.
                     </p>
                 </div>
 
-                <div className="space-y-4 pt-4">
+                <div className="space-y-4">
                     <FormField
                         control={form.control}
                         name="password"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">New Password</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">New Password</label>
                                 <FormControl>
                                     <div className="relative group">
                                         <Lock className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1-2 h-5 w-5 transition-colors duration-200",
-                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
+                                            fieldState.error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
                                         )} />
                                         <Input
                                             {...field}
@@ -101,21 +98,21 @@ export function ResetPasswordForm() {
                                             placeholder="••••••••••••"
                                             disabled={isSubmitting}
                                             className={cn(
-                                                "h-14 pl-12 pr-12 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
-                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                                "h-12 pl-11 pr-12 bg-background border-border rounded-xl transition-all duration-200 focus-visible:ring-primary/20",
+                                                fieldState.error && "border-destructive focus-visible:ring-destructive/20"
                                             )}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword((v) => !v)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                             tabIndex={-1}
                                         >
-                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
                                     </div>
                                 </FormControl>
-                                <FormMessage className="text-sm font-bold text-red-400" />
+                                <FormMessage className="text-xs font-bold text-destructive" />
                             </FormItem>
                         )}
                     />
@@ -125,12 +122,12 @@ export function ResetPasswordForm() {
                         name="confirmPassword"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Confirm New Password</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Confirm New Password</label>
                                 <FormControl>
                                     <div className="relative group">
                                         <Lock className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
-                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
+                                            fieldState.error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
                                         )} />
                                         <Input
                                             {...field}
@@ -138,13 +135,13 @@ export function ResetPasswordForm() {
                                             placeholder="••••••••••••"
                                             disabled={isSubmitting}
                                             className={cn(
-                                                "h-14 pl-12 pr-4 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
-                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                                "h-12 pl-11 pr-4 bg-background border-border rounded-xl transition-all duration-200 focus-visible:ring-primary/20",
+                                                fieldState.error && "border-destructive focus-visible:ring-destructive/20"
                                             )}
                                         />
                                     </div>
                                 </FormControl>
-                                <FormMessage className="text-sm font-bold text-red-400" />
+                                <FormMessage className="text-xs font-bold text-destructive" />
                             </FormItem>
                         )}
                     />
@@ -152,15 +149,15 @@ export function ResetPasswordForm() {
 
                 <Button
                     type="submit"
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-base font-black tracking-tight text-white shadow-xl shadow-violet-600/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
+                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-black text-sm tracking-tight shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
-                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                         <span className="flex items-center gap-2">
                             Update Password
-                            <ArrowRight className="h-5 w-5" />
+                            <ArrowRight className="h-4 w-4" />
                         </span>
                     )}
                 </Button>

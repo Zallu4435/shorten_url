@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import {
-    BarChart3,
+    BarChart,
     Check,
     Copy,
     ExternalLink,
     MoreHorizontal,
     Pencil,
-    QrCode,
+    Scan,
     Trash2,
+    Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -155,7 +156,7 @@ export function LinkCard({ url }: LinkCardProps) {
 
                     <Button variant="outline" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all border-border hover:border-primary/30" asChild>
                         <Link href={`/links/${url.id}`} title="Insights">
-                            <BarChart3 className="h-4 w-4" />
+                            <BarChart className="h-4 w-4" />
                         </Link>
                     </Button>
 
@@ -184,7 +185,7 @@ export function LinkCard({ url }: LinkCardProps) {
                             </DropdownMenuItem>
                             {url.qrCode && (
                                 <DropdownMenuItem className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
-                                    <QrCode className="mr-3 h-4 w-4 text-primary" />
+                                    <Scan className="mr-3 h-4 w-4 text-primary" />
                                     Terminal QR
                                 </DropdownMenuItem>
                             )}
@@ -225,7 +226,14 @@ export function LinkCard({ url }: LinkCardProps) {
                             onClick={handleDelete}
                             disabled={deleting}
                         >
-                            {deleting ? "Terminating…" : "Confirm Termination"}
+                            {deleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Terminating...
+                                </>
+                            ) : (
+                                "Confirm Termination"
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

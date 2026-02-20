@@ -148,5 +148,8 @@ class AnalyticsQuery(graphene.ObjectType):
             total_urls=overview["total_urls"],
             total_clicks=overview["total_clicks"],
             unique_clicks=overview["unique_clicks"],
+            clicks_today=overview["clicks_today"],
+            clicks_this_week=overview["clicks_this_week"],
+            clicks_this_month=overview["clicks_this_month"],
             top_urls=overview["top_urls"],
         )

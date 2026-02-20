@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { Search, Shield, ShieldOff, Users as UsersIcon, UserPlus, Filter, ShieldCheck, Mail, Calendar } from "lucide-react";
+import { UserPlus, UserMinus, Users as UsersIcon, Shield, Mail, Calendar, Loader2 } from "lucide-react";
 
 import { ALL_USERS_QUERY } from "@/lib/graphql/queries";
 import {
@@ -23,101 +23,131 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoading } from "@/components/shared/PageLoading";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { FilterSelect } from "@/components/shared/FilterSelect";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
+import { useDebounce } from "@/lib/hooks/useDebounce";
+import { ADMIN_PAGE_SIZE, USER_ROLE_OPTIONS, USER_SORT_OPTIONS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { AdminUser, PaginatedUsers } from "@/types";
+
 
 export default function AdminUsersPage() {
     const [search, setSearch] = useState("");
+    const [role, setRole] = useState("all");
+    const [sort, setSort] = useState("newest");
     const [page, setPage] = useState(1);
+
+    // Debounce the search term — only fires a GraphQL request 400ms after typing stops
+    const debouncedSearch = useDebounce(search, 400);
+
+    const variables = useMemo(() => ({
+        page,
+        limit: ADMIN_PAGE_SIZE,
+        search: debouncedSearch || undefined,
+        isAdmin: role === "all" ? undefined : role === "admin",
+        orderBy: sort,
+    }), [page, debouncedSearch, role, sort]);
 
     const { data, loading, refetch } = useQuery<{ allUsers: PaginatedUsers }>(
         ALL_USERS_QUERY,
-        { variables: { page, limit: 20, search: search || undefined } }
+        { variables }
     );
 
-    const [activateUser] = useMutation(ACTIVATE_USER_MUTATION, {
+    const [activateUser, { loading: activating }] = useMutation(ACTIVATE_USER_MUTATION, {
         onCompleted: () => { toast.success("User activated"); refetch(); },
+        onError: (err) => toast.error(err.message),
     });
-    const [deactivateUser] = useMutation(DEACTIVATE_USER_MUTATION, {
+    const [deactivateUser, { loading: deactivating }] = useMutation(DEACTIVATE_USER_MUTATION, {
         onCompleted: () => { toast.success("User deactivated"); refetch(); },
+        onError: (err) => toast.error(err.message),
     });
-    const [makeAdmin] = useMutation(MAKE_ADMIN_MUTATION, {
+    const [makeAdmin, { loading: promoting }] = useMutation(MAKE_ADMIN_MUTATION, {
         onCompleted: () => { toast.success("Admin role granted"); refetch(); },
+        onError: (err) => toast.error(err.message),
     });
-    const [removeAdmin] = useMutation(REMOVE_ADMIN_MUTATION, {
+    const [removeAdmin, { loading: demoting }] = useMutation(REMOVE_ADMIN_MUTATION, {
         onCompleted: () => { toast.success("Admin role removed"); refetch(); },
+        onError: (err) => toast.error(err.message),
     });
 
     const users = data?.allUsers?.users ?? [];
     const total = data?.allUsers?.total ?? 0;
+    const totalPages = Math.ceil(total / ADMIN_PAGE_SIZE);
+
+    const handleSearch = (v: string) => { setSearch(v); setPage(1); };
+    const handleRole = (v: string) => { setRole(v); setPage(1); };
+    const handleSort = (v: string) => { setSort(v); setPage(1); };
+
 
     return (
         <div className="space-y-12 max-w-[1400px] mx-auto animate-in fade-in duration-700">
             <PageHeader
-                title="User Matrix"
-                description="Identity oversight & access control"
+                title="User Management"
+                description="Manage user roles and account status"
                 icon={UsersIcon}
-                stats={{
-                    label: "Active Identities",
-                    value: total,
-                    unit: "USR"
-                }}
-            >
-                <FilterSelect
-                    value="all"
-                    onValueChange={() => { }}
-                    options={[
-                        { label: "All Identities", value: "all" },
-                        { label: "Commander Class", value: "admin" },
-                        { label: "Standard Observers", value: "user" },
-                    ]}
-                    className="sm:w-64"
-                />
-            </PageHeader>
+                stats={{ label: "Total Users", value: total, unit: "USR" }}
+            />
 
-            <div className="flex items-center gap-4">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row items-center gap-4">
                 <SearchInput
                     placeholder="Search by email or username…"
                     value={search}
-                    onChange={(v) => { setSearch(v); setPage(1); }}
-                    className="max-w-md"
+                    onChange={handleSearch}
+                    className="flex-1"
+                />
+                <FilterSelect
+                    value={role}
+                    onValueChange={handleRole}
+                    options={USER_ROLE_OPTIONS}
+                    className="sm:w-52"
+                />
+                <FilterSelect
+                    value={sort}
+                    onValueChange={handleSort}
+                    options={USER_SORT_OPTIONS}
+                    className="sm:w-48"
                 />
             </div>
 
+            {!loading && debouncedSearch && (
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    {total} identity match{total !== 1 ? "es" : ""} for &quot;{debouncedSearch}&quot;
+                </p>
+            )}
+
             <div className="space-y-4">
-                <TechnicalIndicator label="Identity Database" icon={ShieldCheck} />
+                <TechnicalIndicator label="User Directory" icon={Shield} />
                 <div className="rounded-[32px] border border-border bg-card shadow-sm overflow-hidden backdrop-blur-sm">
                     <Table>
                         <TableHeader className="bg-muted/30">
                             <TableRow className="hover:bg-transparent border-b border-border">
-                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">User Identity</TableHead>
-                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Access Protocol</TableHead>
-                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Provisioned</TableHead>
-                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Pulse</TableHead>
-                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">Overrides</TableHead>
+                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">User</TableHead>
+                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Role</TableHead>
+                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Joined</TableHead>
+                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Status</TableHead>
+                                <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className={cn("transition-opacity", loading && "opacity-40 pointer-events-none")}>
                             {loading
                                 ? Array.from({ length: 8 }).map((_, i) => (
                                     <TableRow key={i}>
-                                        <TableCell colSpan={5}>
-                                            <Skeleton className="h-8 w-full" />
-                                        </TableCell>
+                                        <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
                                     </TableRow>
                                 ))
                                 : users.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={5} className="py-20">
                                             <EmptyTerminal
-                                                title="No Identities Discovered"
-                                                description="No users matched your current scanning parameters. Expand your search scope."
+                                                title="No Identities Found"
+                                                description="No users matched your search or filter criteria."
                                                 icon={UsersIcon}
                                             />
                                         </TableCell>
@@ -141,12 +171,11 @@ export default function AdminUsersPage() {
                                         <TableCell className="py-5 px-8">
                                             {user.isAdmin ? (
                                                 <Badge className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest px-3 h-7 rounded-lg shadow-sm">
-                                                    <ShieldCheck className="mr-2 h-3.5 w-3.5" />
-                                                    Commander
+                                                    <Shield className="mr-2 h-3.5 w-3.5" />Admin
                                                 </Badge>
                                             ) : (
                                                 <Badge variant="secondary" className="bg-muted text-muted-foreground border border-border text-[10px] font-black uppercase tracking-widest px-3 h-7 rounded-lg">
-                                                    Observer
+                                                    User
                                                 </Badge>
                                             )}
                                         </TableCell>
@@ -167,9 +196,10 @@ export default function AdminUsersPage() {
                                                     }
                                                     className="data-[state=checked]:bg-emerald-500"
                                                     aria-label="Toggle user active"
+                                                    disabled={activating || deactivating}
                                                 />
                                                 <span className={`text-[10px] font-black uppercase tracking-tighter ${user.isActive ? "text-emerald-500" : "text-muted-foreground"}`}>
-                                                    {user.isActive ? "Online" : "Terminated"}
+                                                    {user.isActive ? "Active" : "Inactive"}
                                                 </span>
                                             </div>
                                         </TableCell>
@@ -182,12 +212,13 @@ export default function AdminUsersPage() {
                                                         ? removeAdmin({ variables: { userId: user.id } })
                                                         : makeAdmin({ variables: { userId: user.id } })
                                                 }
+                                                disabled={promoting || demoting}
                                                 className="h-10 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest gap-2 hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/20"
                                             >
                                                 {user.isAdmin ? (
-                                                    <><ShieldOff className="h-4 w-4" /> Demote</>
+                                                    demoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><UserMinus className="h-4 w-4" /> Demote</>
                                                 ) : (
-                                                    <><Shield className="h-4 w-4" /> Promote</>
+                                                    promoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><UserPlus className="h-4 w-4" /> Promote</>
                                                 )}
                                             </Button>
                                         </TableCell>
@@ -198,18 +229,21 @@ export default function AdminUsersPage() {
                 </div>
             </div>
 
-            {Math.ceil(total / 20) > 1 && (
+            {/* Pagination */}
+            {totalPages > 1 && (
                 <div className="flex items-center justify-between bg-muted/20 border border-border p-4 rounded-2xl">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                        Sequence {page} of {Math.ceil(total / 20)}
+                        Page {page} of {totalPages} — {total} total
                     </p>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-                            Previous
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border" disabled={page >= Math.ceil(total / 20)} onClick={() => setPage((p) => p + 1)}>
-                            Next
-                        </Button>
+                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border"
+                            disabled={page <= 1}
+                            onClick={() => setPage((p) => p - 1)}
+                        >Previous</Button>
+                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border"
+                            disabled={page >= totalPages}
+                            onClick={() => setPage((p) => p + 1)}
+                        >Next</Button>
                     </div>
                 </div>
             )}

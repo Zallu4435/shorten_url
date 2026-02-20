@@ -148,6 +148,19 @@ def get_user_analytics_overview(user, start_date: date = None, end_date: date = 
     unique_clicks = base_qs.filter(is_unique=True).count()
     total_urls = user_url_ids.count()
 
+    # Temporal clicks (past 0, 7, 30 days)
+    # Using ClickModel (base_qs represents the user's clicks)
+    from django.utils import timezone
+    from datetime import timedelta
+    now = timezone.now()
+    today = now.date()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+
+    clicks_today = base_qs.filter(created_at__date=today).count()
+    clicks_this_week = base_qs.filter(created_at__gte=week_ago).count()
+    clicks_this_month = base_qs.filter(created_at__gte=month_ago).count()
+
     # Most clicked URLs for the user
     from apps.urls.models import ShortURL as ShortURLModel
     top_urls = (
@@ -160,6 +173,9 @@ def get_user_analytics_overview(user, start_date: date = None, end_date: date = 
         "total_urls": total_urls,
         "total_clicks": total_clicks,
         "unique_clicks": unique_clicks,
+        "clicks_today": clicks_today,
+        "clicks_this_week": clicks_this_week,
+        "clicks_this_month": clicks_this_month,
         "top_urls": top_urls,
     }
 

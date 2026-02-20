@@ -222,15 +222,19 @@ def check_url_reachability(url: str) -> int:
 
     except requests.TooManyRedirects:
         raise URLNotReachableError(
-            f"Too many redirects (max {URL_MAX_REDIRECTS}). The URL may be in a redirect loop."
+            f"Too many redirects (max {URL_MAX_REDIRECTS}). This usually indicates a redirect loop."
         )
     except requests.Timeout:
         raise URLNotReachableError(
-            f"URL did not respond within {URL_REACHABILITY_TIMEOUT_SECONDS} seconds."
+            f"The server at {url} took too long to respond (timeout after {URL_REACHABILITY_TIMEOUT_SECONDS}s)."
         )
     except requests.exceptions.SSLError:
         raise URLNotReachableError(
-            "SSL certificate error. The URL's HTTPS certificate is invalid or expired."
+            "SSL/TLS handshake failed. This typically means the site has an invalid or expired certificate."
+        )
+    except requests.exceptions.ConnectionError:
+        raise URLNotReachableError(
+            "Could not establish a connection to the server. Please check the domain name and your internet connection."
         )
     except Exception:
         # Fallback: Try GET request
@@ -243,15 +247,30 @@ def check_url_reachability(url: str) -> int:
                 max_redirects=URL_MAX_REDIRECTS,
                 stream=True,   # Don't download the full body
             )
+            
+            # If we get a response but it's an error status
+            if response.status_code >= 400:
+                if response.status_code == 404:
+                    msg = "The page was not found (404). Please verify the path is correct."
+                elif response.status_code == 403:
+                    msg = "Access was denied (403). The server is blocking automated requests."
+                elif response.status_code >= 500:
+                    msg = f"The destination server returned a server error ({response.status_code})."
+                else:
+                    msg = f"The destination server returned status code {response.status_code}."
+                raise URLNotReachableError(msg)
+
             response.close()
             logger.debug(f"URL reachable (GET fallback): {url} — status: {response.status_code}")
             return response.status_code
-        except requests.Timeout:
-            raise URLNotReachableError("URL timed out on both HEAD and GET requests.")
+        except (requests.Timeout, requests.exceptions.Timeout):
+            raise URLNotReachableError("The destination server is too slow to respond (timed out).")
+        except URLNotReachableError:
+            raise
         except Exception as e:
             logger.warning(f"URL not reachable: {url} — {e}")
             raise URLNotReachableError(
-                "The URL could not be reached. Please verify it is correct and publicly accessible."
+                "This URL could not be verified. It might be down, private, or blocking our diagnostic tool."
             )
 
 

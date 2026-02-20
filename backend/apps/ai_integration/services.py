@@ -47,7 +47,7 @@ def _get_client():
     try:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        model_name = getattr(settings, "GEMINI_MODEL", "gemini-1.5-flash")
+        model_name = getattr(settings, "GEMINI_MODEL", "gemini-flash-latest")
         _gemini_client = genai.GenerativeModel(model_name)
         logger.info(f"Gemini client initialized with model: {model_name}")
         return _gemini_client

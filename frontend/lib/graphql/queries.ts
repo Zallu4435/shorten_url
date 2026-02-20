@@ -17,8 +17,24 @@ export const ME_QUERY = gql`
 
 // ─── URLs ─────────────────────────────────────────────────
 export const MY_URLS_QUERY = gql`
-  query MyUrls($page: Int, $limit: Int) {
-    myUrls(page: $page, limit: $limit) {
+  query MyUrls(
+    $page: Int
+    $limit: Int
+    $search: String
+    $isActive: Boolean
+    $isPrivate: Boolean
+    $isFlagged: Boolean
+    $orderBy: String
+  ) {
+    myUrls(
+      page: $page
+      limit: $limit
+      search: $search
+      isActive: $isActive
+      isPrivate: $isPrivate
+      isFlagged: $isFlagged
+      orderBy: $orderBy
+    ) {
       urls {
         id
         slug
@@ -28,6 +44,7 @@ export const MY_URLS_QUERY = gql`
         clickCount
         isActive
         isPrivate
+        isFlagged
         isSingleUse
         expiresAt
         createdAt
@@ -37,6 +54,7 @@ export const MY_URLS_QUERY = gql`
     }
   }
 `;
+
 
 export const GET_URL_QUERY = gql`
   query GetUrl($id: UUID!) {
@@ -179,8 +197,8 @@ export const PLATFORM_STATS_QUERY = gql`
 `;
 
 export const ALL_USERS_QUERY = gql`
-  query AllUsers($page: Int, $limit: Int, $search: String, $isActive: Boolean) {
-    allUsers(page: $page, limit: $limit, search: $search, isActive: $isActive) {
+  query AllUsers($page: Int, $limit: Int, $search: String, $isActive: Boolean, $isAdmin: Boolean, $orderBy: String) {
+    allUsers(page: $page, limit: $limit, search: $search, isActive: $isActive, isAdmin: $isAdmin, orderBy: $orderBy) {
       users {
         id
         email
@@ -194,6 +212,7 @@ export const ALL_USERS_QUERY = gql`
     }
   }
 `;
+
 
 export const USER_DETAIL_QUERY = gql`
   query UserDetail($userId: UUID!) {
@@ -222,8 +241,8 @@ export const USER_DETAIL_QUERY = gql`
 `;
 
 export const ALL_URLS_ADMIN_QUERY = gql`
-  query AllUrlsAdmin($page: Int, $limit: Int, $search: String, $flaggedOnly: Boolean) {
-    allUrls(page: $page, limit: $limit, search: $search, flaggedOnly: $flaggedOnly) {
+  query AllUrlsAdmin($page: Int, $limit: Int, $search: String, $flaggedOnly: Boolean, $orderBy: String) {
+    allUrls(page: $page, limit: $limit, search: $search, flaggedOnly: $flaggedOnly, orderBy: $orderBy) {
       urls {
         id
         slug
@@ -244,6 +263,7 @@ export const ALL_URLS_ADMIN_QUERY = gql`
     }
   }
 `;
+
 
 // ─── AI ──────────────────────────────────────────────────
 export const SUGGEST_SLUGS_QUERY = gql`

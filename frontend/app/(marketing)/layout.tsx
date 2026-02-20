@@ -3,25 +3,47 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { BarChart3, Link2, QrCode, Shield, Sparkles, Zap, ArrowRight, MousePointerClick } from "lucide-react";
+import {
+    BarChart,
+    Link as LinkIcon,
+    Scan,
+    Shield,
+    Activity,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface Feature {
     icon: LucideIcon;
-    title: string;
+    label: string;
     description: string;
 }
 
 const features: Feature[] = [
-    { icon: BarChart3, title: "Analytics", description: "Real-time click tracking." },
-    { icon: QrCode, title: "QR Codes", description: "Instant generation." },
-    { icon: Sparkles, title: "AI Slugs", description: "Genini suggestions." },
-    { icon: Shield, title: "Secure", description: "Password protection." },
-];
-
-const stats = [
-    { value: "10M+", label: "Links Created" },
-    { value: "99.99%", label: "System Uptime" },
+    {
+        icon: BarChart,
+        label: "Detailed Analytics",
+        description: "Real-time click tracking, device, country & referrer breakdown.",
+    },
+    {
+        icon: Scan,
+        label: "QR Codes",
+        description: "Instant QR generation for every link you create.",
+    },
+    {
+        icon: Scan,
+        label: "Smart Suggestions",
+        description: "Intelligent slug and metadata generation in one click.",
+    },
+    {
+        icon: Shield,
+        label: "Password Protection",
+        description: "Lock any link behind a secret key for private sharing.",
+    },
+    {
+        icon: Activity,
+        label: "Webhooks",
+        description: "Fire real-time events to your server on every click.",
+    },
 ];
 
 function GuestGuard({ children }: { children: React.ReactNode }) {
@@ -36,8 +58,8 @@ function GuestGuard({ children }: { children: React.ReactNode }) {
 
     if (loading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-[#070709]">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-violet-600 border-t-transparent" />
+            <div className="flex h-screen w-full items-center justify-center bg-background">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
         );
     }
@@ -49,79 +71,96 @@ function GuestGuard({ children }: { children: React.ReactNode }) {
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
         <GuestGuard>
-            <div className="relative min-h-screen w-full bg-[#070708] lg:bg-[#070708] overflow-hidden selection:bg-violet-500/30">
-                {/* ── Visual Effects ──────────────── */}
+            <div className="relative min-h-screen w-full bg-background overflow-hidden">
+                {/* Subtle radial glow using primary token */}
                 <div className="pointer-events-none fixed inset-0 z-0">
-                    <div className="absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full bg-violet-600/10 blur-[120px] animate-pulse" />
-                    <div className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-600/5 blur-[100px]" />
-                    <div className="absolute inset-0 opacity-[0.02]"
-                        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+                    <div className="absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full bg-primary/5 blur-[120px]" />
+                    <div className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-primary/3 blur-[100px]" />
                 </div>
 
                 <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col lg:flex-row">
-                    {/* ── Left Side: Content ──────────────── */}
-                    <div className="flex flex-1 flex-col justify-between p-8 pt-12 lg:p-16 lg:pt-16 xl:p-24">
-                        {/* Logo Area */}
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-xl shadow-violet-500/20">
-                                <Link2 className="h-6 w-6 text-white" />
+
+                    {/* ── Left Side: Brand & Features ─────────── */}
+                    <div className="hidden lg:flex flex-1 flex-col justify-between p-16 xl:p-24 border-r border-border">
+
+                        {/* Logo */}
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+                                <Activity className="h-5 w-5 text-primary-foreground fill-primary-foreground" />
                             </div>
-                            <span className="text-2xl font-black tracking-tighter text-white">
-                                SHORTEN<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">URL</span>
+                            <span className="text-xl font-bold tracking-tight text-foreground">
+                                Shorten<span className="text-primary font-black uppercase">URL</span>
                             </span>
                         </div>
 
-                        {/* Mid Content */}
-                        <div className="max-w-xl">
-                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/5 px-4 py-2">
-                                <Sparkles className="h-4 w-4 text-violet-400" />
-                                <span className="text-xs font-bold uppercase tracking-widest text-violet-300">Next Gen Link Intelligence</span>
+                        {/* Headline */}
+                        <div className="max-w-md space-y-8">
+                            <div className="space-y-4">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5">
+                                    <Activity className="h-3.5 w-3.5 text-primary" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-primary">
+                                        Advanced Link Management
+                                    </span>
+                                </div>
+
+                                <h1 className="text-5xl font-black leading-[1.05] tracking-tight text-foreground xl:text-6xl">
+                                    Scale your links.{" "}
+                                    <span className="text-primary">Own your data.</span>
+                                </h1>
+
+                                <p className="text-base font-medium leading-relaxed text-muted-foreground">
+                                    Enterprise-grade link shortening with detailed analytics,
+                                    custom routing, and powerful integrations.
+                                </p>
                             </div>
 
-                            <h1 className="text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl xl:text-7xl">
-                                Scale your links.{" "}
-                                <span className="block italic text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-400 to-cyan-400">
-                                    Own your data.
-                                </span>
-                            </h1>
-
-                            <p className="mt-8 text-lg font-medium leading-relaxed text-zinc-400 xl:text-xl">
-                                Enterprise-grade link optimization platform with deep analytics, smart routing, and global scale.
-                            </p>
-
-                            <div className="mt-12 grid grid-cols-2 gap-8 border-t border-white/5 pt-12">
-                                {stats.map((s) => (
-                                    <div key={s.label}>
-                                        <div className="text-4xl font-black text-white">{s.value}</div>
-                                        <div className="mt-1 text-sm font-bold uppercase tracking-widest text-zinc-500">{s.label}</div>
-                                    </div>
-                                ))}
+                            {/* Feature list */}
+                            <div className="space-y-4 pt-4 border-t border-border">
+                                {features.map((f) => {
+                                    const Icon = f.icon;
+                                    return (
+                                        <div key={f.label} className="flex items-start gap-4">
+                                            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                                <Icon className="h-4 w-4" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-black text-foreground">{f.label}</p>
+                                                <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                                                    {f.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Footer (Desktop) */}
-                        <div className="hidden items-center gap-6 lg:flex">
-                            <div className="flex -space-x-3">
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div key={i} className="h-10 w-10 rounded-full border-2 border-[#070708] bg-zinc-800" />
-                                ))}
-                            </div>
-                            <p className="text-sm font-medium text-zinc-500">
-                                Trusted by <span className="text-white">50k+</span> creators worldwide
-                            </p>
+                        {/* Bottom system status */}
+                        <div className="flex items-center gap-3 rounded-xl bg-muted px-4 py-3 w-fit">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+                                System Online
+                            </span>
                         </div>
                     </div>
 
-                    {/* ── Right Side: Form ──────────────── */}
-                    <div className="flex flex-1 items-center justify-center p-6 lg:p-12 xl:p-24">
-                        <div className="relative w-full max-w-[480px]">
-                            {/* Decorative background for the form area */}
-                            <div className="absolute -inset-4 rounded-[40px] bg-gradient-to-tr from-violet-600/10 via-transparent to-indigo-600/10 blur-2xl" />
+                    {/* ── Right Side: Form ─────────────────────── */}
+                    <div className="flex flex-1 flex-col items-center justify-center p-6 lg:p-12 xl:p-20">
 
-                            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-3xl sm:p-12">
-                                {/* Top bar decor */}
-                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 to-indigo-600" />
+                        {/* Mobile-only logo */}
+                        <div className="mb-8 flex items-center gap-3 lg:hidden">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+                                <Activity className="h-4.5 w-4.5 text-primary-foreground fill-primary-foreground" />
+                            </div>
+                            <span className="text-lg font-bold tracking-tight text-foreground">
+                                Shorten<span className="text-primary font-black uppercase">URL</span>
+                            </span>
+                        </div>
 
+                        <div className="relative w-full max-w-[440px]">
+                            <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm sm:p-10">
+                                {/* Primary accent bar */}
+                                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary to-primary/60 rounded-t-2xl" />
                                 {children}
                             </div>
                         </div>

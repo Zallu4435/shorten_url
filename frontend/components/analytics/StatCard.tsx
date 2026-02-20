@@ -75,7 +75,7 @@ export function StatCard({
             <CardContent className="p-8">
                 <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-3">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-3">
                             {label}
                         </p>
                         <p className="text-4xl font-black tracking-tighter text-foreground tabular-nums leading-none">

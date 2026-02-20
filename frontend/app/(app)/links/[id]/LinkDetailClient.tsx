@@ -3,11 +3,11 @@
 import { useQuery } from "@apollo/client";
 import {
     ArrowLeft,
-    BarChart3,
+    BarChart,
     Check,
     Copy,
     ExternalLink,
-    MousePointerClick,
+    MousePointer2,
     TrendingUp,
     Users,
     Settings,
@@ -22,14 +22,9 @@ import { CountryChart } from "@/components/analytics/CountryChart";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { PageLoading } from "@/components/shared/PageLoading";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-import { formatDateTime, truncateUrl, cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ShortURL, AnalyticsSummary } from "@/types";
 
@@ -47,10 +42,14 @@ export function LinkDetailClient({ id }: { id: string }) {
     const url = urlData?.getUrl;
     const analytics = analyticsData?.getAnalytics;
 
+    if (urlLoading && !urlData) {
+        return <PageLoading message="Loading link details..." />;
+    }
+
     const handleCopy = () => {
         if (url?.shortUrl) {
             copy(url.shortUrl);
-            toast.success("Buffer updated : Node URL copied");
+            toast.success("Link copied to clipboard");
         }
     };
 
@@ -84,30 +83,30 @@ export function LinkDetailClient({ id }: { id: string }) {
                                     </h1>
                                     <div className="flex items-center gap-1.5">
                                         {url.isActive ? (
-                                            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 px-2 py-0.5">Active Node</Badge>
+                                            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20 px-2 py-0.5">Active</Badge>
                                         ) : (
-                                            <Badge variant="secondary" className="bg-muted text-[10px] font-black uppercase tracking-widest border border-border px-2 py-0.5">Offline</Badge>
+                                            <Badge variant="secondary" className="bg-muted text-[10px] font-black uppercase tracking-widest border border-border px-2 py-0.5">Inactive</Badge>
                                         )}
                                         {url.isPrivate && (
-                                            <Badge variant="secondary" className="bg-muted/50 text-muted-foreground text-[10px] font-black uppercase tracking-widest border border-border px-2 py-0.5">Encrypted</Badge>
+                                            <Badge variant="secondary" className="bg-muted/50 text-muted-foreground text-[10px] font-black uppercase tracking-widest border border-border px-2 py-0.5">Protected</Badge>
                                         )}
                                         {url.isFlagged && (
-                                            <Badge variant="destructive" className="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest border border-red-500/20 px-2 py-0.5">Compromised</Badge>
+                                            <Badge variant="destructive" className="bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest border border-red-500/20 px-2 py-0.5">Flagged</Badge>
                                         )}
                                     </div>
                                 </div>
                                 <div className="mt-2 flex items-center gap-2">
-                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-tighter shrink-0 border border-border">DST</span>
+                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-tighter shrink-0 border border-border">URL</span>
                                     <p className="text-sm font-medium text-muted-foreground truncate">
                                         {url.originalUrl}
                                     </p>
                                 </div>
                                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-2">
-                                    Deployment: {formatDateTime(url.createdAt)}
+                                    Created: {formatDateTime(url.createdAt)}
                                 </p>
                             </>
                         ) : (
-                            <p className="text-muted-foreground font-bold">Node not discovered in current quadrant.</p>
+                            <p className="text-muted-foreground font-bold">Link not found.</p>
                         )}
                     </div>
                 </div>
@@ -120,18 +119,18 @@ export function LinkDetailClient({ id }: { id: string }) {
                             ) : (
                                 <Copy className="h-4 w-4" />
                             )}
-                            Buffer URL
+                            Copy Link
                         </Button>
                         <Button variant="outline" className="h-11 px-6 rounded-xl font-bold gap-2 border-border hover:bg-muted shadow-sm hover:border-primary/30 transition-all" asChild>
                             <a href={url.shortUrl} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="h-4 w-4" />
-                                Launch
+                                Open Link
                             </a>
                         </Button>
                         <Button variant="default" className="h-11 px-6 rounded-xl font-bold gap-2 shadow-lg shadow-primary/20 hover:opacity-90 border border-primary/20" asChild>
                             <Link href={`/links/${url.id}/edit`}>
                                 <Settings className="h-4 w-4" />
-                                Config
+                                Settings
                             </Link>
                         </Button>
                     </div>
@@ -141,25 +140,25 @@ export function LinkDetailClient({ id }: { id: string }) {
             {/* Operational Intelligence Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    label="Traffic Volume"
+                    label="Total Clicks"
                     value={analytics?.totalClicks ?? 0}
-                    icon={MousePointerClick}
+                    icon={MousePointer2}
                     loading={analyticsLoading}
                 />
                 <StatCard
-                    label="Unique Reach"
+                    label="Unique Visitors"
                     value={analytics?.uniqueClicks ?? 0}
                     icon={Users}
                     loading={analyticsLoading}
                 />
                 <StatCard
-                    label="Active Terminals"
+                    label="Devices"
                     value={analytics?.clicksByDevice?.length ?? 0}
-                    icon={BarChart3}
+                    icon={BarChart}
                     loading={analyticsLoading}
                 />
                 <StatCard
-                    label="Global Spread"
+                    label="Countries"
                     value={analytics?.clicksByCountry?.length ?? 0}
                     icon={TrendingUp}
                     loading={analyticsLoading}
@@ -171,7 +170,7 @@ export function LinkDetailClient({ id }: { id: string }) {
                 <ClicksChart
                     data={analytics?.clicksByDate ?? []}
                     loading={analyticsLoading}
-                    title="Traffic Temporal Flow"
+                    title="Clicks over time"
                 />
 
                 <div className="grid gap-6 md:grid-cols-2">

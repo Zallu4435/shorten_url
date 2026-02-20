@@ -43,6 +43,7 @@ class AdminQuery(graphene.ObjectType):
         ),
         is_active=graphene.Boolean(description="Filter by active status. Omit to show all."),
         is_admin=graphene.Boolean(description="Filter by admin status. Omit to show all."),
+        order_by=graphene.String(default_value="newest", description="Criteria: newest, oldest, username_asc"),
         description="Paginated list of all registered users. Admin only.",
     )
 
@@ -73,6 +74,7 @@ class AdminQuery(graphene.ObjectType):
         user_id=graphene.UUID(
             description="Filter by owner user ID.",
         ),
+        order_by=graphene.String(default_value="newest", description="Criteria: newest, oldest, clicks_desc, slug_asc"),
         description="Paginated list of all short URLs across the platform. Admin only.",
     )
 
@@ -88,6 +90,7 @@ class AdminQuery(graphene.ObjectType):
         root, info,
         page=1, limit=20, search="",
         is_active=None, is_admin=None,
+        order_by="newest",
     ):
         result = services.list_all_users(
             page=page,
@@ -95,6 +98,7 @@ class AdminQuery(graphene.ObjectType):
             search=search,
             is_active=is_active,
             is_admin=is_admin,
+            order_by=order_by,
         )
         return PaginatedUsersType(
             users=result["users"],
@@ -117,7 +121,7 @@ class AdminQuery(graphene.ObjectType):
         root, info,
         page=1, limit=20, search="",
         flagged_only=False, active_only=False,
-        user_id=None,
+        user_id=None, order_by="newest",
     ):
         result = services.list_all_urls(
             page=page,
@@ -126,6 +130,7 @@ class AdminQuery(graphene.ObjectType):
             flagged_only=flagged_only,
             active_only=active_only,
             user_id=str(user_id) if user_id else None,
+            order_by=order_by,
         )
         return PaginatedAdminURLsType(
             urls=result["urls"],

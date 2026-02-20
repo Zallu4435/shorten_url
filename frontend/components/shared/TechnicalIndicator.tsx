@@ -31,7 +31,7 @@ export function TechnicalIndicator({
                     <Icon className="h-3 w-3" />
                 </div>
             )}
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
                 {label}
             </p>
         </div>

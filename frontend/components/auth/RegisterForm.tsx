@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterValues } from "@/lib/validations/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, Mail, Lock, User, Check, X, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
-
 const passwordRules = [
     { label: "8+ characters", test: (p: string) => p.length >= 8 },
     { label: "Upper case", test: (p: string) => /[A-Z]/.test(p) },
@@ -31,8 +30,8 @@ const passwordRules = [
 
 function getPasswordStrength(password: string): { score: number; color: string } {
     const passed = passwordRules.filter((r) => r.test(password)).length;
-    if (passed === 0) return { score: 0, color: "bg-zinc-800" };
-    if (passed === 1) return { score: 25, color: "bg-red-500" };
+    if (passed === 0) return { score: 0, color: "bg-muted" };
+    if (passed === 1) return { score: 25, color: "bg-destructive" };
     if (passed === 2) return { score: 50, color: "bg-orange-500" };
     if (passed === 3) return { score: 75, color: "bg-amber-500" };
     return { score: 100, color: "bg-emerald-500" };
@@ -55,12 +54,10 @@ export function RegisterForm() {
 
     const onSubmit = async (values: RegisterValues) => {
         try {
-            console.log("Starting registration with:", { email: values.email, username: values.username });
             await authRegister(values.email, values.username, values.password);
             toast.success("Welcome aboard! Account created successfully 🎉");
             router.replace("/dashboard");
         } catch (err) {
-            console.error("Registration error:", err);
             const message = err instanceof Error ? err.message : "Could not create account. Please try again.";
             toast.error(message);
         }
@@ -70,29 +67,29 @@ export function RegisterForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                    <h2 className="text-4xl font-black tracking-tight text-white leading-tight">
-                        Join the <br /> Future.
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                <div className="space-y-1.5">
+                    <h2 className="text-2xl font-black tracking-tight text-foreground">
+                        Create account
                     </h2>
-                    <p className="text-base font-medium text-zinc-400">
-                        Create your account in less than 30 seconds.
+                    <p className="text-sm font-medium text-muted-foreground">
+                        Create your free account to start shortening links.
                     </p>
                 </div>
 
-                <div className="space-y-4 pt-2">
+                <div className="space-y-4">
                     {/* Email */}
                     <FormField
                         control={form.control}
                         name="email"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Email address</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Email address</label>
                                 <FormControl>
                                     <div className="relative group">
                                         <Mail className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
-                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
+                                            fieldState.error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
                                         )} />
                                         <Input
                                             {...field}
@@ -100,13 +97,13 @@ export function RegisterForm() {
                                             placeholder="name@example.com"
                                             disabled={isSubmitting}
                                             className={cn(
-                                                "h-14 pl-12 pr-4 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
-                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                                "h-12 pl-11 pr-4 bg-background border-border rounded-xl transition-all duration-200 focus-visible:ring-primary/20",
+                                                fieldState.error && "border-destructive focus-visible:ring-destructive/20"
                                             )}
                                         />
                                     </div>
                                 </FormControl>
-                                <FormMessage className="text-sm font-bold text-red-400" />
+                                <FormMessage className="text-xs font-bold text-destructive" />
                             </FormItem>
                         )}
                     />
@@ -117,25 +114,25 @@ export function RegisterForm() {
                         name="username"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Username</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Username</label>
                                 <FormControl>
                                     <div className="relative group">
                                         <User className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
-                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
+                                            fieldState.error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
                                         )} />
                                         <Input
                                             {...field}
                                             placeholder="your_handle"
                                             disabled={isSubmitting}
                                             className={cn(
-                                                "h-14 pl-12 pr-4 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
-                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                                "h-12 pl-11 pr-4 bg-background border-border rounded-xl transition-all duration-200 focus-visible:ring-primary/20",
+                                                fieldState.error && "border-destructive focus-visible:ring-destructive/20"
                                             )}
                                         />
                                     </div>
                                 </FormControl>
-                                <FormMessage className="text-sm font-bold text-red-400" />
+                                <FormMessage className="text-xs font-bold text-destructive" />
                             </FormItem>
                         )}
                     />
@@ -146,12 +143,12 @@ export function RegisterForm() {
                         name="password"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Password</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Password</label>
                                 <FormControl>
                                     <div className="relative group">
                                         <Lock className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
-                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
+                                            fieldState.error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
                                         )} />
                                         <Input
                                             {...field}
@@ -159,17 +156,17 @@ export function RegisterForm() {
                                             placeholder="••••••••••••"
                                             disabled={isSubmitting}
                                             className={cn(
-                                                "h-14 pl-12 pr-12 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
-                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                                "h-12 pl-11 pr-12 bg-background border-border rounded-xl transition-all duration-200 focus-visible:ring-primary/20",
+                                                fieldState.error && "border-destructive focus-visible:ring-destructive/20"
                                             )}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword((v) => !v)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                             tabIndex={-1}
                                         >
-                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
                                     </div>
                                 </FormControl>
@@ -178,13 +175,13 @@ export function RegisterForm() {
                                     <div className="mt-2 flex gap-1 px-1">
                                         {[1, 2, 3, 4].map((i) => (
                                             <div key={i} className={cn(
-                                                "h-1.5 flex-1 rounded-full transition-all duration-500",
-                                                i * 25 <= strength.score ? strength.color : "bg-zinc-800"
+                                                "h-1 flex-1 rounded-full transition-all duration-500",
+                                                i * 25 <= strength.score ? strength.color : "bg-muted"
                                             )} />
                                         ))}
                                     </div>
                                 )}
-                                <FormMessage className="text-sm font-bold text-red-400" />
+                                <FormMessage className="text-xs font-bold text-destructive" />
                             </FormItem>
                         )}
                     />
@@ -195,12 +192,12 @@ export function RegisterForm() {
                         name="confirmPassword"
                         render={({ field, fieldState }) => (
                             <FormItem className="space-y-1.5">
-                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Confirm Password</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">Confirm Password</label>
                                 <FormControl>
                                     <div className="relative group">
                                         <Lock className={cn(
-                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
-                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200",
+                                            fieldState.error ? "text-destructive" : "text-muted-foreground group-focus-within:text-primary"
                                         )} />
                                         <Input
                                             {...field}
@@ -208,21 +205,21 @@ export function RegisterForm() {
                                             placeholder="••••••••••••"
                                             disabled={isSubmitting}
                                             className={cn(
-                                                "h-14 pl-12 pr-12 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
-                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                                "h-12 pl-11 pr-12 bg-background border-border rounded-xl transition-all duration-200 focus-visible:ring-primary/20",
+                                                fieldState.error && "border-destructive focus-visible:ring-destructive/20"
                                             )}
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowConfirmPassword((v) => !v)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                             tabIndex={-1}
                                         >
-                                            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
                                     </div>
                                 </FormControl>
-                                <FormMessage className="text-sm font-bold text-red-400" />
+                                <FormMessage className="text-xs font-bold text-destructive" />
                             </FormItem>
                         )}
                     />
@@ -230,27 +227,27 @@ export function RegisterForm() {
 
                 <Button
                     type="submit"
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-base font-black tracking-tight text-white shadow-xl shadow-violet-600/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
+                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-black text-sm tracking-tight shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
                         <span className="flex items-center gap-2">
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            Generating identity...
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Creating your account...
                         </span>
                     ) : (
                         <span className="flex items-center gap-2">
                             Create Free Account
-                            <ArrowRight className="h-5 w-5" />
+                            <ArrowRight className="h-4 w-4" />
                         </span>
                     )}
                 </Button>
 
-                <p className="text-center text-sm font-medium text-zinc-500">
-                    Already part of the network?{" "}
+                <p className="text-center text-sm font-medium text-muted-foreground">
+                    Already have an account?{" "}
                     <Link
                         href="/login"
-                        className="font-black text-white hover:text-violet-400 underline decoration-violet-500/30 underline-offset-4 transition-all"
+                        className="font-black text-foreground hover:text-primary underline underline-offset-4 transition-all"
                     >
                         Sign in
                     </Link>

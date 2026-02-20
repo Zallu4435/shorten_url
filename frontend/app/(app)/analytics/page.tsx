@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
-import { BarChart3, Link2, MousePointerClick, TrendingUp } from "lucide-react";
+import { BarChart, Link as LinkIcon, MousePointer2, TrendingUp } from "lucide-react";
 
 import { MY_ANALYTICS_QUERY } from "@/lib/graphql/queries";
 import { StatCard } from "@/components/analytics/StatCard";
@@ -20,6 +20,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
+import { PageLoading } from "@/components/shared/PageLoading";
 import { formatNumber } from "@/lib/utils";
 import type { UserAnalyticsOverview } from "@/types";
 
@@ -30,13 +31,17 @@ export default function AnalyticsPage() {
 
     const analytics = data?.myAnalytics;
 
+    if (loading && !data) {
+        return <PageLoading message="Compiling Global Intelligence..." />;
+    }
+
     return (
         <div className="max-w-[1400px] mx-auto space-y-12 py-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
             {/* Page Header */}
             <PageHeader
-                title="Network Intelligence"
-                description="In-depth performance analysis across your entire link matrix."
-                icon={BarChart3}
+                title="Analytics"
+                description="Detailed performance insights for all your shortened links."
+                icon={BarChart}
                 stats={{
                     label: "Link Matrix",
                     value: analytics?.totalUrls ?? 0,
@@ -46,9 +51,9 @@ export default function AnalyticsPage() {
 
             {/* Global Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard label="Matrix Nodes" value={analytics?.totalUrls ?? 0} icon={Link2} loading={loading} />
-                <StatCard label="Total Throughput" value={analytics?.totalClicks ?? 0} icon={MousePointerClick} loading={loading} />
-                <StatCard label="Unique Sentinels" value={analytics?.uniqueClicks ?? 0} icon={BarChart3} loading={loading} />
+                <StatCard label="Total Links" value={analytics?.totalUrls ?? 0} icon={LinkIcon} loading={loading} />
+                <StatCard label="Total Clicks" value={analytics?.totalClicks ?? 0} icon={MousePointer2} loading={loading} />
+                <StatCard label="Unique Visitors" value={analytics?.uniqueClicks ?? 0} icon={BarChart} loading={loading} />
                 <StatCard label="Flux (30d)" value={analytics?.clicksThisMonth ?? 0} icon={TrendingUp} loading={loading} />
             </div>
 
@@ -56,8 +61,8 @@ export default function AnalyticsPage() {
             <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
                 <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between border-b border-border">
                     <div className="space-y-1">
-                        <TechnicalIndicator label="Performance Hierarchy" icon={TrendingUp} className="mb-0" />
-                        <h2 className="text-3xl font-black tracking-tighter text-foreground">Top Performing Nodes</h2>
+                        <TechnicalIndicator label="Top Performing Links" icon={TrendingUp} className="mb-0" />
+                        <h2 className="text-3xl font-black tracking-tighter text-foreground">Top Performing Links</h2>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -90,7 +95,7 @@ export default function AnalyticsPage() {
                                             {formatNumber(url.clickCount)}
                                         </span>
                                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter mt-1">
-                                            Resolutions
+                                            Clicks
                                         </span>
                                     </div>
                                 </div>
@@ -98,9 +103,9 @@ export default function AnalyticsPage() {
                             {!loading && !analytics?.topUrls?.length && (
                                 <div className="p-20">
                                     <EmptyTerminal
-                                        title="No Data Discovered"
-                                        description="Node performance metrics will appear here once traffic is detected across your network."
-                                        icon={Link2}
+                                        title="No Analytics Data"
+                                        description="No traffic detected yet. Performance metrics will appear once your links are visited."
+                                        icon={LinkIcon}
                                     />
                                 </div>
                             )}

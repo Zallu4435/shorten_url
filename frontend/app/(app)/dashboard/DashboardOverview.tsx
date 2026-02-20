@@ -2,13 +2,14 @@
 
 import { useQuery } from "@apollo/client";
 import {
-    BarChart3,
-    Link2,
-    MousePointerClick,
+    BarChart,
+    Link as LinkIcon,
+    MousePointer2,
     TrendingUp,
     ArrowRight,
     Plus,
     Activity,
+    History,
     Zap,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
+import { PageLoading } from "@/components/shared/PageLoading";
 import { formatNumber, timeAgo, truncateUrl, cn } from "@/lib/utils";
 import type { UserAnalyticsOverview, ShortURL } from "@/types";
 
@@ -44,15 +46,16 @@ export function DashboardOverview() {
     const recentUrls = urlsData?.myUrls?.urls ?? [];
     const hasUrls = recentUrls.length > 0;
 
+
     return (
         <div className="max-w-[1400px] mx-auto space-y-12 py-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
             {/* Page Header */}
             <PageHeader
                 title="Dashboard"
                 description="Manage your network and track performance in real-time."
-                icon={BarChart3}
+                icon={BarChart}
                 stats={{
-                    label: "Network Nodes",
+                    label: "Active Links",
                     value: urlsData?.myUrls?.total ?? 0,
                     unit: "ACTIVE"
                 }}
@@ -70,19 +73,19 @@ export function DashboardOverview() {
                 <StatCard
                     label="Total Links"
                     value={analytics?.totalUrls ?? 0}
-                    icon={Link2}
+                    icon={LinkIcon}
                     loading={analyticsLoading}
                 />
                 <StatCard
                     label="Total Clicks"
                     value={analytics?.totalClicks ?? 0}
-                    icon={MousePointerClick}
+                    icon={MousePointer2}
                     loading={analyticsLoading}
                 />
                 <StatCard
                     label="Unique Reach"
                     value={analytics?.uniqueClicks ?? 0}
-                    icon={BarChart3}
+                    icon={BarChart}
                     loading={analyticsLoading}
                 />
                 <StatCard
@@ -95,10 +98,10 @@ export function DashboardOverview() {
 
             {!analyticsLoading && !hasUrls ? (
                 <EmptyTerminal
-                    title="No Nodes Provisioned"
+                    title="No Links Created"
                     description="Start by creating your first shortened URL. We'll track every click and provide detailed platform insights."
-                    icon={Link2}
-                    actionLabel="Create First Node"
+                    icon={LinkIcon}
+                    actionLabel="Create First Link"
                     actionHref="/links/new"
                 />
             ) : (
@@ -109,8 +112,8 @@ export function DashboardOverview() {
                         <div className="lg:col-span-2">
                             <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden h-full">
                                 <CardHeader className="p-10 pb-2">
-                                    <TechnicalIndicator label="Traffic Dynamics" icon={Activity} />
-                                    <h2 className="text-3xl font-black tracking-tighter text-foreground">Click Velocity</h2>
+                                    <TechnicalIndicator label="Traffic Growth" icon={Activity} />
+                                    <h2 className="text-3xl font-black tracking-tighter text-foreground">Click Activity</h2>
                                 </CardHeader>
                                 <CardContent className="p-10 pt-6">
                                     {analyticsLoading ? (
@@ -159,7 +162,7 @@ export function DashboardOverview() {
                                                     /{url.slug}
                                                 </Link>
                                                 <p className="text-xs font-bold text-muted-foreground truncate uppercase tracking-widest">
-                                                    {url.title || "External Endpoint"}
+                                                    {url.title || "External Link"}
                                                 </p>
                                             </div>
                                             <div className="shrink-0 flex flex-col items-end">
@@ -180,8 +183,8 @@ export function DashboardOverview() {
                     <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
                         <CardHeader className="p-10 flex flex-row items-center justify-between border-b border-border">
                             <div className="space-y-1">
-                                <TechnicalIndicator label="Live Stream" icon={Zap} color="amber" className="mb-0" />
-                                <h2 className="text-3xl font-black tracking-tighter text-foreground">Activity Ledger</h2>
+                                <TechnicalIndicator label="Live Stream" icon={Activity} color="amber" className="mb-0" />
+                                <h2 className="text-3xl font-black tracking-tighter text-foreground">Recent Activity</h2>
                             </div>
                             <Button asChild variant="outline" className="rounded-2xl border-border px-6 font-black uppercase tracking-widest text-xs h-12 hover:bg-muted transition-all bg-background shadow-sm hover:border-primary/50">
                                 <Link href="/links">
@@ -227,7 +230,7 @@ export function DashboardOverview() {
                                                 <p className="text-3xl font-black text-foreground tabular-nums tracking-tighter">
                                                     {formatNumber(url.clickCount)}
                                                 </p>
-                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">Volume</p>
+                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">Clicks</p>
                                             </div>
 
                                             <div className="min-w-[120px] text-right shrink-0 hidden lg:block">

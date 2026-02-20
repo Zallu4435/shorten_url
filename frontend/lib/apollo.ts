@@ -91,7 +91,13 @@ const cache = new InMemoryCache({
         Query: {
             fields: {
                 myUrls: {
-                    keyArgs: [],
+                    keyArgs: ["search", "page", "limit", "orderBy", "isActive", "isPrivate", "isFlagged"],
+                    merge(_existing, incoming) {
+                        return incoming;
+                    },
+                },
+                allUsers: {
+                    keyArgs: ["search", "page", "limit", "orderBy", "isActive", "isAdmin"],
                     merge(_existing, incoming) {
                         return incoming;
                     },
@@ -105,8 +111,8 @@ const client = new ApolloClient({
     link: from([errorLink, authLink, httpLink]),
     cache,
     defaultOptions: {
-        watchQuery: { fetchPolicy: "cache-and-network" },
-        query: { fetchPolicy: "network-only", errorPolicy: "all" },
+        watchQuery: { fetchPolicy: "cache-first" },
+        query: { fetchPolicy: "cache-first" },
         mutate: { errorPolicy: "all" },
     },
 });

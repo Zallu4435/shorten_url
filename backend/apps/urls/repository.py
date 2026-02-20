@@ -6,7 +6,7 @@ No business logic — just DB read/write.
 
 import logging
 from django.db import models as db_models
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 
 from apps.urls.models import ShortURL
@@ -92,15 +92,46 @@ def get_by_id(url_id: str, user=None) -> ShortURL:
         raise URLNotFoundError("Short URL not found.")
 
 
-def list_by_user(user, page: int = 1, limit: int = 20) -> dict:
+def list_by_user(
+    user,
+    page: int = 1,
+    limit: int = 20,
+    search: str = "",
+    is_active: bool = None,
+    is_private: bool = None,
+    is_flagged: bool = None,
+    order_by: str = "newest"
+) -> dict:
     """
     Paginated list of short URLs for a specific user.
-    Returns dict with urls queryset, total count, page, limit.
+    Supports search, status filters, and custom sorting.
     """
     limit = min(limit, MAX_PAGE_SIZE)
     offset = (page - 1) * limit
 
-    qs = ShortURL.objects.filter(user=user).order_by("-created_at")
+    # Sort mapping
+    sort_map = {
+        "newest": "-created_at",
+        "oldest": "created_at",
+        "clicks_desc": "-click_count",
+        "slug_asc": "slug",
+    }
+    django_order = sort_map.get(order_by, "-created_at")
+
+    qs = ShortURL.objects.filter(user=user).order_by(django_order)
+
+    if search:
+        qs = qs.filter(
+            Q(slug__icontains=search) | 
+            Q(original_url__icontains=search) |
+            Q(title__icontains=search)
+        )
+    if is_active is not None:
+        qs = qs.filter(is_active=is_active)
+    if is_private is not None:
+        qs = qs.filter(is_private=is_private)
+    if is_flagged is not None:
+        qs = qs.filter(is_flagged=is_flagged)
     total = qs.count()
     urls = qs[offset:offset + limit]
 

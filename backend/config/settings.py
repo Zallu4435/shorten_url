@@ -210,7 +210,7 @@ GOOGLE_SAFE_BROWSING_URL = (
 # Get your key: https://aistudio.google.com/app/apikey
 # ─────────────────────────────────────────────
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 
 # ─────────────────────────────────────────────
 # GeoIP2 — MaxMind GeoLite2 City Database

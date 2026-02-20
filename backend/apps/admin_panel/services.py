@@ -101,6 +101,7 @@ def list_all_users(
     search: str = "",
     is_active: bool = None,
     is_admin: bool = None,
+    order_by: str = "newest",
 ) -> dict:
     """
     Paginated list of all users. Supports search and filters.
@@ -113,7 +114,15 @@ def list_all_users(
     limit = min(limit, MAX_PAGE_SIZE)
     offset = (page - 1) * limit
 
-    qs = CustomUser.objects.all().order_by("-created_at")
+    # Mapping frontend sort keys to Django fields
+    sort_map = {
+        "newest": "-created_at",
+        "oldest": "created_at",
+        "username_asc": "username",
+    }
+    django_order = sort_map.get(order_by, "-created_at")
+
+    qs = CustomUser.objects.all().order_by(django_order)
 
     if search:
         qs = qs.filter(
@@ -231,6 +240,7 @@ def list_all_urls(
     flagged_only: bool = False,
     active_only: bool = False,
     user_id: str = None,
+    order_by: str = "newest",
 ) -> dict:
     """
     Paginated list of all short URLs. Supports search, flag filter, owner filter.
@@ -244,7 +254,16 @@ def list_all_urls(
     limit = min(limit, MAX_PAGE_SIZE)
     offset = (page - 1) * limit
 
-    qs = ShortURL.objects.select_related("user").order_by("-created_at")
+    # Mapping frontend sort keys to Django fields
+    sort_map = {
+        "newest": "-created_at",
+        "oldest": "created_at",
+        "clicks_desc": "-click_count",
+        "slug_asc": "slug",
+    }
+    django_order = sort_map.get(order_by, "-created_at")
+
+    qs = ShortURL.objects.select_related("user").order_by(django_order)
 
     if search:
         qs = qs.filter(
