@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validations/auth";
 import Link from "next/link";
 import { Loader2, Mail, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,11 +19,6 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
-const forgotPasswordSchema = z.object({
-    email: z.string().email("Please enter a valid email address"),
-});
-
-type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
     const [isSubmitted, setIsSubmitted] = useState(false);

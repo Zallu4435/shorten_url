@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { loginSchema, type LoginValues } from "@/lib/validations/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, Link2, Mail, Lock, ArrowRight } from "lucide-react";
@@ -21,12 +21,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
-const loginSchema = z.object({
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(1, "Password is required"),
-});
 
-type LoginValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
     const { login } = useAuth();

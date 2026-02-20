@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { registerSchema, type RegisterValues } from "@/lib/validations/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, Mail, Lock, User, Check, X, ArrowRight } from "lucide-react";
@@ -21,28 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
-const registerSchema = z
-    .object({
-        email: z.string().email("Please enter a valid email address"),
-        username: z
-            .string()
-            .min(3, "Username must be at least 3 characters")
-            .max(30, "Username must be at most 30 characters")
-            .regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores allowed"),
-        password: z
-            .string()
-            .min(8, "Password must be at least 8 characters")
-            .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-            .regex(/[a-z]/, "Must contain at least one lowercase letter")
-            .regex(/[0-9]/, "Must contain at least one number"),
-        confirmPassword: z.string().min(1, "Please confirm your password"),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords don't match",
-        path: ["confirmPassword"],
-    });
-
-type RegisterValues = z.infer<typeof registerSchema>;
 
 const passwordRules = [
     { label: "8+ characters", test: (p: string) => p.length >= 8 },

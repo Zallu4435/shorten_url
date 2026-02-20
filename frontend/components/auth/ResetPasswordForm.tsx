@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { resetPasswordSchema, type ResetPasswordValues } from "@/lib/validations/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
@@ -20,21 +20,6 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 
-const resetPasswordSchema = z
-    .object({
-        password: z
-            .string()
-            .min(8, "Password must be at least 8 characters")
-            .regex(/[A-Z]/, "Must contain at least one uppercase letter")
-            .regex(/[0-9]/, "Must contain at least one number"),
-        confirmPassword: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords don't match",
-        path: ["confirmPassword"],
-    });
-
-type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 export function ResetPasswordForm() {
     const router = useRouter();

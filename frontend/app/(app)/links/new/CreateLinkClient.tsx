@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { createLinkSchema, type CreateLinkValues } from "@/lib/validations/links";
 import { useMutation, useLazyQuery } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import {
@@ -48,26 +48,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import type { SlugSuggestion, URLMetadata } from "@/types";
 
-const createSchema = z.object({
-    originalUrl: z.string().url("Please enter a valid URL"),
-    slug: z
-        .string()
-        .regex(/^[a-zA-Z0-9_-]*$/, "Only letters, numbers, hyphens, underscores")
-        .default(""),
-    title: z.string().max(160).default(""),
-    description: z.string().max(500).default(""),
-    isPrivate: z.boolean().default(false),
-    password: z.string().default(""),
-    isSingleUse: z.boolean().default(false),
-    maxClicks: z.string().default(""),
-    expiresAt: z.string().default(""),
-    webhookUrl: z
-        .string()
-        .refine((v) => !v || /^https?:\/\/./.test(v), "Enter a valid webhook URL")
-        .default(""),
-});
-
-type CreateValues = z.infer<typeof createSchema>;
 
 export function CreateLinkClient() {
     const router = useRouter();
@@ -75,9 +55,9 @@ export function CreateLinkClient() {
     const [slugSuggestions, setSlugSuggestions] = useState<SlugSuggestion[]>([]);
     const [aiLoading, setAiLoading] = useState(false);
 
-    const form = useForm<CreateValues>({
+    const form = useForm<CreateLinkValues>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        resolver: zodResolver(createSchema) as any,
+        resolver: zodResolver(createLinkSchema) as any,
         defaultValues: {
             originalUrl: "",
             slug: "",
@@ -149,7 +129,7 @@ export function CreateLinkClient() {
         }
     };
 
-    const onSubmit = async (values: CreateValues) => {
+    const onSubmit = async (values: CreateLinkValues) => {
         const clicks = values.maxClicks ? parseInt(values.maxClicks) : NaN;
         await createUrl({
             variables: {
