@@ -36,7 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { UPDATE_SHORT_URL_MUTATION, DELETE_SHORT_URL_MUTATION } from "@/lib/graphql/mutations";
 import { MY_URLS_QUERY } from "@/lib/graphql/queries";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-import { formatNumber, timeAgo, truncateUrl } from "@/lib/utils";
+import { formatNumber, timeAgo, truncateUrl, cn } from "@/lib/utils";
 import type { ShortURL } from "@/types";
 
 interface LinkCardProps {
@@ -53,20 +53,20 @@ export function LinkCard({ url }: LinkCardProps) {
 
     const [deleteUrl, { loading: deleting }] = useMutation(DELETE_SHORT_URL_MUTATION, {
         refetchQueries: [MY_URLS_QUERY],
-        onCompleted: () => toast.success("Link deleted"),
+        onCompleted: () => toast.success("Endpoint terminated successfully"),
         onError: (err) => toast.error(err.message),
     });
 
     const handleCopy = () => {
         copy(url.shortUrl);
-        toast.success("Copied to clipboard");
+        toast.success("URL copied to buffer");
     };
 
     const handleToggleActive = async () => {
         try {
             await updateUrl({ variables: { id: url.id, isActive: !url.isActive } });
         } catch {
-            toast.error("Failed to update link");
+            toast.error("Failed to reconfigure node");
         }
     };
 
@@ -77,151 +77,155 @@ export function LinkCard({ url }: LinkCardProps) {
 
     return (
         <>
-            <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-sm group">
-                {/* Active toggle */}
-                <Switch
-                    checked={url.isActive}
-                    onCheckedChange={handleToggleActive}
-                    disabled={updating}
-                    aria-label={url.isActive ? "Deactivate link" : "Activate link"}
-                    className="shrink-0"
-                />
+            <div className="flex items-center gap-6 rounded-2xl border border-border bg-card p-5 group hover:border-primary/20 hover:shadow-sm transition-all duration-300">
+                {/* Status Section */}
+                <div className="flex items-center gap-4 shrink-0">
+                    <Switch
+                        checked={url.isActive}
+                        onCheckedChange={handleToggleActive}
+                        disabled={updating}
+                        className="data-[state=checked]:bg-emerald-500"
+                    />
+                    <div className={cn(
+                        "h-2 w-2 rounded-full",
+                        url.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-muted-foreground/30"
+                    )} />
+                </div>
 
-                {/* Link info */}
+                {/* Main Content */}
                 <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 mb-1">
                         <Link
                             href={`/links/${url.id}`}
-                            className="text-sm font-semibold hover:text-primary transition-colors"
+                            className="text-lg font-extrabold tracking-tight text-foreground hover:text-primary transition-colors"
                         >
                             /{url.slug}
                         </Link>
-                        {url.isPrivate && (
-                            <Badge variant="secondary" className="text-xs">Private</Badge>
-                        )}
-                        {url.isSingleUse && (
-                            <Badge variant="secondary" className="text-xs">Single-use</Badge>
-                        )}
-                        {url.isFlagged && (
-                            <Badge variant="destructive" className="text-xs">Flagged</Badge>
-                        )}
+                        <div className="flex items-center gap-1.5 ml-1">
+                            {url.isPrivate && (
+                                <Badge variant="secondary" className="bg-muted text-[10px] font-bold uppercase tracking-widest px-1.5 h-4 border-none">Private</Badge>
+                            )}
+                            {url.isSingleUse && (
+                                <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 text-[10px] font-bold uppercase tracking-widest px-1.5 h-4 border-none">Ghost</Badge>
+                            )}
+                            {url.isFlagged && (
+                                <Badge variant="destructive" className="bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-widest px-1.5 h-4 border-none">Alert</Badge>
+                            )}
+                        </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {truncateUrl(url.originalUrl, 72)}
-                    </p>
+                    <div className="flex items-center gap-2 max-w-full">
+                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-tighter shrink-0">DST</span>
+                        <p className="text-sm font-bold text-muted-foreground truncate">
+                            {truncateUrl(url.originalUrl, 90)}
+                        </p>
+                    </div>
                 </div>
 
-                {/* Stats */}
-                <div className="hidden sm:flex flex-col items-end shrink-0">
-                    <span className="text-sm font-semibold tabular-nums">
+                {/* Quantitative Data */}
+                <div className="hidden md:flex flex-col items-end shrink-0 min-w-[80px]">
+                    <span className="text-xl font-extrabold tracking-tight text-foreground tabular-nums leading-none">
                         {formatNumber(url.clickCount)}
                     </span>
-                    <span className="text-xs text-muted-foreground">clicks</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Total Hits</span>
                 </div>
 
-                {/* Created */}
-                <div className="hidden lg:block text-xs text-muted-foreground shrink-0 w-20 text-right">
-                    {timeAgo(url.createdAt)}
+                {/* Temporal Data */}
+                <div className="hidden lg:flex flex-col items-end shrink-0 min-w-[100px]">
+                    <span className="text-xs font-bold text-muted-foreground leading-none">
+                        {timeAgo(url.createdAt)}
+                    </span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Discovery</span>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-1 shrink-0">
-                    {/* Copy */}
+                {/* Command Bar */}
+                <div className="flex items-center gap-1 shrink-0 bg-muted/50 p-1 rounded-xl border border-border mt-1 md:mt-0">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all border-border hover:border-primary/30"
                         onClick={handleCopy}
-                        aria-label="Copy short URL"
+                        title="Copy to buffer"
                     >
                         {copied ? (
-                            <Check className="h-3.5 w-3.5 text-emerald-500" />
+                            <Check className="h-4 w-4 text-emerald-500" />
                         ) : (
-                            <Copy className="h-3.5 w-3.5" />
+                            <Copy className="h-4 w-4" />
                         )}
                     </Button>
 
-                    {/* Analytics */}
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" asChild>
-                        <Link href={`/links/${url.id}`} aria-label="View analytics">
-                            <BarChart3 className="h-3.5 w-3.5" />
+                    <Button variant="outline" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all border-border hover:border-primary/30" asChild>
+                        <Link href={`/links/${url.id}`} title="Insights">
+                            <BarChart3 className="h-4 w-4" />
                         </Link>
                     </Button>
 
-                    {/* More menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                aria-label="More options"
+                                className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-lg transition-all border-border hover:border-primary/30"
                             >
-                                <MoreHorizontal className="h-3.5 w-3.5" />
+                                <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                                <a
-                                    href={url.shortUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="cursor-pointer"
-                                >
-                                    <ExternalLink className="mr-2 h-4 w-4" />
-                                    Open link
+                        <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-border shadow-2xl">
+                            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
+                                <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                                    <ExternalLink className="mr-3 h-4 w-4 text-primary" />
+                                    Launch Endpoint
                                 </a>
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                                <Link href={`/links/${url.id}`} className="cursor-pointer">
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
+                            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
+                                <Link href={`/links/${url.id}`} className="flex items-center w-full">
+                                    <Pencil className="mr-3 h-4 w-4 text-primary" />
+                                    Reconfigure
                                 </Link>
                             </DropdownMenuItem>
                             {url.qrCode && (
-                                <DropdownMenuItem>
-                                    <QrCode className="mr-2 h-4 w-4" />
-                                    View QR code
+                                <DropdownMenuItem className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
+                                    <QrCode className="mr-3 h-4 w-4 text-primary" />
+                                    Terminal QR
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuSeparator />
+                            <DropdownMenuSeparator className="my-1.5 mx-1" />
                             <DropdownMenuItem
-                                className="text-destructive focus:text-destructive cursor-pointer"
+                                className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-red-500/10 text-red-500 focus:text-red-600 font-bold text-sm group"
                                 onClick={() => setShowDeleteDialog(true)}
                             >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
+                                <Trash2 className="mr-3 h-4 w-4 group-hover:scale-110 transition-transform" />
+                                Terminate Node
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </div>
 
-            {/* Delete confirm dialog */}
+            {/* Termination Dialogue */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md rounded-3xl border-border bg-popover shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle>Delete link</DialogTitle>
-                        <DialogDescription>
-                            This will permanently delete{" "}
-                            <span className="font-mono text-foreground">/{url.slug}</span> and
-                            all its analytics. This cannot be undone.
+                        <DialogTitle className="text-xl font-bold tracking-tight">Terminate Endpoint?</DialogTitle>
+                        <DialogDescription className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed">
+                            This will permanently purge the node <span className="font-mono text-foreground font-bold bg-muted px-1.5 py-0.5 rounded">/{url.slug}</span> and all associated analytical data. This action is irreversible.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="gap-2">
+                    <DialogFooter className="gap-3 mt-6">
                         <Button
-                            variant="outline"
+                            variant="ghost"
+                            className="rounded-xl px-6 font-bold"
                             onClick={() => setShowDeleteDialog(false)}
                             disabled={deleting}
                         >
-                            Cancel
+                            Retain Node
                         </Button>
                         <Button
                             variant="destructive"
+                            className="rounded-xl px-6 font-bold shadow-lg shadow-red-500/20"
                             onClick={handleDelete}
                             disabled={deleting}
                         >
-                            {deleting ? "Deleting…" : "Delete link"}
+                            {deleting ? "Terminating…" : "Confirm Termination"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

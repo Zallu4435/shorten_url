@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { BarChart3, Link2, QrCode, Shield, Sparkles, Zap } from "lucide-react";
+import { BarChart3, Link2, QrCode, Shield, Sparkles, Zap, ArrowRight, MousePointerClick } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface Feature {
@@ -13,39 +13,17 @@ interface Feature {
 }
 
 const features: Feature[] = [
-    {
-        icon: BarChart3,
-        title: "Deep analytics",
-        description: "Clicks by device, country, browser, and referrer.",
-    },
-    {
-        icon: QrCode,
-        title: "QR code generation",
-        description: "Every link gets its own QR code, instantly.",
-    },
-    {
-        icon: Shield,
-        title: "Private links",
-        description: "Password-protect and set expiry dates.",
-    },
-    {
-        icon: Sparkles,
-        title: "AI slug suggestions",
-        description: "Gemini generates creative, memorable slugs.",
-    },
-    {
-        icon: Zap,
-        title: "Webhook triggers",
-        description: "Fire a POST request on every click event.",
-    },
-    {
-        icon: Link2,
-        title: "Dynamic redirects",
-        description: "Route by device, time of day, or geolocation.",
-    },
+    { icon: BarChart3, title: "Analytics", description: "Real-time click tracking." },
+    { icon: QrCode, title: "QR Codes", description: "Instant generation." },
+    { icon: Sparkles, title: "AI Slugs", description: "Genini suggestions." },
+    { icon: Shield, title: "Secure", description: "Password protection." },
 ];
 
-// Redirect already-authenticated users away from /login and /register
+const stats = [
+    { value: "10M+", label: "Links Created" },
+    { value: "99.99%", label: "System Uptime" },
+];
+
 function GuestGuard({ children }: { children: React.ReactNode }) {
     const { isLoggedIn, loading } = useAuth();
     const router = useRouter();
@@ -58,86 +36,96 @@ function GuestGuard({ children }: { children: React.ReactNode }) {
 
     if (loading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+            <div className="flex h-screen w-full items-center justify-center bg-[#070709]">
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-violet-600 border-t-transparent" />
             </div>
         );
     }
 
     if (isLoggedIn) return null;
-
     return <>{children}</>;
 }
 
-export default function AuthLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
         <GuestGuard>
-            <div className="grid min-h-screen lg:grid-cols-2">
-                {/* ── Left panel — brand & features ──────────── */}
-                <div className="relative hidden flex-col bg-zinc-950 p-10 text-white lg:flex">
-                    {/* Subtle gradient orbs */}
-                    <div
-                        className="pointer-events-none absolute inset-0 overflow-hidden"
-                        aria-hidden="true"
-                    >
-                        <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl" />
-                        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-indigo-600/15 blur-3xl" />
-                    </div>
+            <div className="relative min-h-screen w-full bg-[#070708] lg:bg-[#070708] overflow-hidden selection:bg-violet-500/30">
+                {/* ── Visual Effects ──────────────── */}
+                <div className="pointer-events-none fixed inset-0 z-0">
+                    <div className="absolute top-[-10%] left-[-10%] h-[600px] w-[600px] rounded-full bg-violet-600/10 blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-600/5 blur-[100px]" />
+                    <div className="absolute inset-0 opacity-[0.02]"
+                        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+                </div>
 
-                    <div className="relative z-10 flex h-full flex-col">
-                        {/* Logo */}
-                        <div className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600">
-                                <Link2 className="h-5 w-5 text-white" />
+                <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col lg:flex-row">
+                    {/* ── Left Side: Content ──────────────── */}
+                    <div className="flex flex-1 flex-col justify-between p-8 pt-12 lg:p-16 lg:pt-16 xl:p-24">
+                        {/* Logo Area */}
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-xl shadow-violet-500/20">
+                                <Link2 className="h-6 w-6 text-white" />
                             </div>
-                            <span className="text-xl font-semibold tracking-tight">
-                                Shorten URL
+                            <span className="text-2xl font-black tracking-tighter text-white">
+                                SHORTEN<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">URL</span>
                             </span>
                         </div>
 
-                        {/* Tagline + features pushed to bottom */}
-                        <div className="mt-auto">
-                            <blockquote className="space-y-3">
-                                <p className="text-3xl font-bold leading-snug tracking-tight">
-                                    Shrink links.{" "}
-                                    <span className="text-violet-400">Grow insights.</span>
-                                </p>
-                                <p className="text-base text-zinc-400 leading-relaxed">
-                                    A production-grade link shortener with real analytics, AI
-                                    suggestions, and enterprise-level controls.
-                                </p>
-                            </blockquote>
+                        {/* Mid Content */}
+                        <div className="max-w-xl">
+                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/5 px-4 py-2">
+                                <Sparkles className="h-4 w-4 text-violet-400" />
+                                <span className="text-xs font-bold uppercase tracking-widest text-violet-300">Next Gen Link Intelligence</span>
+                            </div>
 
-                            {/* Feature grid */}
-                            <div className="mt-8 grid grid-cols-2 gap-3">
-                                {features.map(({ icon: Icon, title, description }) => (
-                                    <div
-                                        key={title}
-                                        className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 backdrop-blur-sm"
-                                    >
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <Icon className="h-3.5 w-3.5 text-violet-400" />
-                                            <span className="text-sm font-medium text-white">
-                                                {title}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-zinc-400 leading-relaxed">
-                                            {description}
-                                        </p>
+                            <h1 className="text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl xl:text-7xl">
+                                Scale your links.{" "}
+                                <span className="block italic text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-400 to-cyan-400">
+                                    Own your data.
+                                </span>
+                            </h1>
+
+                            <p className="mt-8 text-lg font-medium leading-relaxed text-zinc-400 xl:text-xl">
+                                Enterprise-grade link optimization platform with deep analytics, smart routing, and global scale.
+                            </p>
+
+                            <div className="mt-12 grid grid-cols-2 gap-8 border-t border-white/5 pt-12">
+                                {stats.map((s) => (
+                                    <div key={s.label}>
+                                        <div className="text-4xl font-black text-white">{s.value}</div>
+                                        <div className="mt-1 text-sm font-bold uppercase tracking-widest text-zinc-500">{s.label}</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* ── Right panel — form ──────────────────────── */}
-                <div className="flex min-h-screen items-center justify-center bg-background p-8">
-                    <div className="w-full max-w-sm">{children}</div>
+                        {/* Footer (Desktop) */}
+                        <div className="hidden items-center gap-6 lg:flex">
+                            <div className="flex -space-x-3">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="h-10 w-10 rounded-full border-2 border-[#070708] bg-zinc-800" />
+                                ))}
+                            </div>
+                            <p className="text-sm font-medium text-zinc-500">
+                                Trusted by <span className="text-white">50k+</span> creators worldwide
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* ── Right Side: Form ──────────────── */}
+                    <div className="flex flex-1 items-center justify-center p-6 lg:p-12 xl:p-24">
+                        <div className="relative w-full max-w-[480px]">
+                            {/* Decorative background for the form area */}
+                            <div className="absolute -inset-4 rounded-[40px] bg-gradient-to-tr from-violet-600/10 via-transparent to-indigo-600/10 blur-2xl" />
+
+                            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-zinc-900/50 p-8 shadow-2xl backdrop-blur-3xl sm:p-12">
+                                {/* Top bar decor */}
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 to-indigo-600" />
+
+                                {children}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </GuestGuard>

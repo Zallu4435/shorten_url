@@ -13,6 +13,7 @@ import {
     ChevronUp,
     Link2,
     Check,
+    ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 import {
     Form,
@@ -95,8 +97,8 @@ export function CreateLinkClient() {
         {
             refetchQueries: [MY_URLS_QUERY],
             onCompleted: (data) => {
-                toast.success("Link created!", {
-                    description: `/${data.createShortUrl.slug} is ready to share`,
+                toast.success("Node successfully provisioned", {
+                    description: `Endpoint /${data.createShortUrl.slug} is now live.`,
                 });
                 router.push(`/links/${data.createShortUrl.id}`);
             },
@@ -114,12 +116,11 @@ export function CreateLinkClient() {
     const handleAISuggest = async () => {
         const url = form.getValues("originalUrl");
         if (!url) {
-            toast.error("Enter a URL first");
+            toast.error("Destination URL required");
             return;
         }
         setAiLoading(true);
         try {
-            // Run both in parallel
             const [slugResult, metaResult] = await Promise.allSettled([
                 getSlugs({ variables: { url, count: 5 } }),
                 getMetadata({ variables: { url } }),
@@ -139,16 +140,17 @@ export function CreateLinkClient() {
                 if (meta.description && !form.getValues("description")) {
                     form.setValue("description", meta.description);
                 }
-                toast.success("AI metadata filled in");
+                toast.success("Intelligence data synthesized");
             }
         } catch {
-            toast.error("AI suggestions unavailable");
+            toast.error("AI node diagnostics failed");
         } finally {
             setAiLoading(false);
         }
     };
 
     const onSubmit = async (values: CreateValues) => {
+        const clicks = values.maxClicks ? parseInt(values.maxClicks) : NaN;
         await createUrl({
             variables: {
                 originalUrl: values.originalUrl,
@@ -158,7 +160,7 @@ export function CreateLinkClient() {
                 isPrivate: values.isPrivate,
                 password: values.password || undefined,
                 isSingleUse: values.isSingleUse,
-                maxClicks: values.maxClicks ? parseInt(values.maxClicks) : undefined,
+                maxClicks: isNaN(clicks) ? undefined : clicks,
                 expiresAt: values.expiresAt || undefined,
                 webhookUrl: values.webhookUrl || undefined,
             },
@@ -166,25 +168,39 @@ export function CreateLinkClient() {
     };
 
     return (
-        <div className="max-w-2xl space-y-5">
-            <div>
-                <h1 className="text-xl font-semibold tracking-tight">New link</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                    Shorten a URL and track its performance
-                </p>
+        <div className="max-w-2xl mx-auto py-8 animate-in fade-in duration-700">
+            <button
+                onClick={() => router.back()}
+                className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors mb-8 group"
+            >
+                <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+                Return to Hub
+            </button>
+
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-6 mb-10">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                        Provision New Endpoint
+                    </h1>
+                    <p className="text-sm font-medium text-muted-foreground mt-1.5 leading-relaxed">
+                        Establish a new network node to route traffic and capture deep analytics.
+                        Use our intelligence engine to auto-generate optimal metadata.
+                    </p>
+                </div>
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    {/* URL input */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base flex items-center gap-2">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Primary Config */}
+                    <Card className="rounded-2xl border-border bg-card shadow-sm overflow-hidden">
+                        <CardHeader className="pb-4 bg-muted/30 border-b border-border">
+                            <CardTitle className="text-sm font-bold flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
                                 <Link2 className="h-4 w-4 text-primary" />
-                                Destination URL
+                                Destination Protocol
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-6 space-y-6">
                             <FormField
                                 control={form.control}
                                 name="originalUrl"
@@ -194,73 +210,69 @@ export function CreateLinkClient() {
                                             <Input
                                                 {...field}
                                                 type="url"
-                                                placeholder="https://example.com/very-long-url-here"
+                                                placeholder="https://destination-node.com/resource"
                                                 autoFocus
-                                                className="bg-background"
+                                                className="h-12 bg-background border-border text-base font-medium focus-visible:ring-primary/20 rounded-xl shadow-sm"
                                             />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-xs font-bold" />
                                     </FormItem>
                                 )}
                             />
 
-                            {/* AI suggestions button */}
                             <Button
                                 type="button"
                                 variant="outline"
-                                size="sm"
                                 onClick={handleAISuggest}
                                 disabled={aiLoading}
-                                className="gap-2"
+                                className="w-full h-11 rounded-xl border-violet-500/30 bg-violet-500/[0.03] hover:bg-violet-500/10 text-violet-600 font-bold transition-all group shadow-sm"
                             >
                                 {aiLoading ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : (
-                                    <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+                                    <Sparkles className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
                                 )}
-                                {aiLoading ? "Generating…" : "AI: suggest slug & metadata"}
+                                {aiLoading ? "Synthesizing Metadata..." : "AI: Intelligent Suggestions"}
                             </Button>
                         </CardContent>
                     </Card>
 
-                    {/* Slug */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base">Custom slug</CardTitle>
-                            <CardDescription>
-                                Leave blank to auto-generate a random slug
-                            </CardDescription>
+                    {/* Slug Configuration */}
+                    <Card className="rounded-2xl border-border bg-card shadow-sm overflow-hidden">
+                        <CardHeader className="pb-4 bg-muted/30 border-b border-border">
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Endpoint Identification</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="p-6 space-y-5">
                             <FormField
                                 control={form.control}
                                 name="slug"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-muted-foreground shrink-0">
-                                                {process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}
-                                                /
+                                        <div className="flex items-center gap-3 p-1 rounded-xl bg-muted/50 border border-border">
+                                            <span className="text-xs font-bold text-muted-foreground pl-3 uppercase tracking-tighter">
+                                                SHORTEN.URL /
                                             </span>
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    placeholder="my-slug"
-                                                    className="bg-background font-mono"
+                                                    placeholder="unique-path"
+                                                    className="h-10 bg-transparent border-none focus-visible:ring-0 font-mono text-sm font-bold"
                                                 />
                                             </FormControl>
                                         </div>
-                                        <FormMessage />
+                                        <FormDescription className="text-[10px] font-bold uppercase tracking-widest mt-2 text-muted-foreground pl-1">
+                                            Leave empty for randomized hash generation
+                                        </FormDescription>
+                                        <FormMessage className="text-xs font-bold" />
                                     </FormItem>
                                 )}
                             />
 
-                            {/* AI slug chips */}
                             {slugSuggestions.length > 0 && (
-                                <div className="space-y-1.5">
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                        <Sparkles className="h-3 w-3 text-violet-500" />
-                                        AI suggestions — click to use
+                                <div className="space-y-3 pt-2">
+                                    <p className="text-[10px] font-bold text-violet-500 uppercase tracking-widest flex items-center gap-1.5">
+                                        <Sparkles className="h-3 w-3" />
+                                        Suggested Path Models
                                     </p>
                                     <div className="flex flex-wrap gap-2">
                                         {slugSuggestions.map((s) => {
@@ -270,13 +282,11 @@ export function CreateLinkClient() {
                                                     key={s.slug}
                                                     type="button"
                                                     onClick={() => form.setValue("slug", s.slug)}
-                                                    title={s.reason}
-                                                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-mono transition-colors ${isSelected
-                                                        ? "border-primary bg-primary/10 text-primary"
-                                                        : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                                                    className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all ${isSelected
+                                                        ? "border-primary bg-primary/10 text-primary shadow-sm"
+                                                        : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground shadow-sm"
                                                         }`}
                                                 >
-                                                    {isSelected && <Check className="h-3 w-3" />}
                                                     {s.slug}
                                                 </button>
                                             );
@@ -287,29 +297,26 @@ export function CreateLinkClient() {
                         </CardContent>
                     </Card>
 
-                    {/* Title + Description */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base">Details</CardTitle>
-                            <CardDescription>
-                                Optional metadata to identify this link in your dashboard
-                            </CardDescription>
+                    {/* Information Hierarchy */}
+                    <Card className="rounded-2xl border-border bg-card shadow-sm overflow-hidden">
+                        <CardHeader className="pb-4 bg-muted/30 border-b border-border">
+                            <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Intelligence Metadata</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="p-6 space-y-6">
                             <FormField
                                 control={form.control}
                                 name="title"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Title</FormLabel>
+                                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Internal Label</FormLabel>
                                         <FormControl>
                                             <Input
                                                 {...field}
-                                                placeholder="Product launch page"
-                                                className="bg-background"
+                                                placeholder="e.g., Q1 Marketing Pipeline"
+                                                className="h-11 bg-background border-border rounded-xl font-medium shadow-sm"
                                             />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-xs font-bold" />
                                     </FormItem>
                                 )}
                             />
@@ -318,49 +325,47 @@ export function CreateLinkClient() {
                                 name="description"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Description</FormLabel>
+                                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Contextual Brief</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 {...field}
-                                                placeholder="A short description of the link…"
-                                                rows={2}
-                                                className="bg-background resize-none"
+                                                placeholder="Explain the purpose of this network branch..."
+                                                rows={3}
+                                                className="bg-background border-border rounded-xl font-medium resize-none px-4 py-3 shadow-sm"
                                             />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-xs font-bold" />
                                     </FormItem>
                                 )}
                             />
                         </CardContent>
                     </Card>
 
-                    {/* Advanced options toggle */}
+                    {/* Operational Constraints Toggle */}
                     <button
                         type="button"
                         onClick={() => setShowAdvanced((v) => !v)}
-                        className="flex w-full items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium transition-colors hover:bg-muted"
+                        className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all hover:bg-muted group shadow-sm hover:border-primary/30"
                     >
-                        Advanced options
-                        {showAdvanced ? (
-                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        <span className="flex items-center gap-2">
+                            {showAdvanced ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />}
+                            Advanced Security & Constraints
+                        </span>
+                        <Badge variant="outline" className="bg-muted/50 text-[10px] font-black border-border">{showAdvanced ? "Active" : "Closed"}</Badge>
                     </button>
 
                     {showAdvanced && (
-                        <Card>
-                            <CardContent className="pt-5 space-y-5">
-                                {/* Private + Password */}
+                        <Card className="rounded-2xl border-border bg-card shadow-lg overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                            <CardContent className="p-6 space-y-6">
                                 <FormField
                                     control={form.control}
                                     name="isPrivate"
                                     render={({ field }) => (
-                                        <FormItem className="flex items-center justify-between">
-                                            <div>
-                                                <FormLabel>Private link</FormLabel>
-                                                <FormDescription className="text-xs">
-                                                    Require a password to access
+                                        <FormItem className="flex items-center justify-between p-1">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-sm font-bold">Access Encryption</FormLabel>
+                                                <FormDescription className="text-xs font-medium">
+                                                    Require cryptographic key for resolution
                                                 </FormDescription>
                                             </div>
                                             <FormControl>
@@ -378,34 +383,33 @@ export function CreateLinkClient() {
                                         control={form.control}
                                         name="password"
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Password</FormLabel>
+                                            <FormItem className="animate-in fade-in duration-300">
+                                                <FormLabel className="text-xs font-bold uppercase tracking-widest">Resolution Key</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
                                                         type="password"
                                                         placeholder="••••••••"
-                                                        className="bg-background"
+                                                        className="h-11 bg-background border-border rounded-xl shadow-sm"
                                                     />
                                                 </FormControl>
-                                                <FormMessage />
+                                                <FormMessage className="text-xs font-bold" />
                                             </FormItem>
                                         )}
                                     />
                                 )}
 
-                                <Separator />
+                                <Separator className="bg-border" />
 
-                                {/* Single use */}
                                 <FormField
                                     control={form.control}
                                     name="isSingleUse"
                                     render={({ field }) => (
-                                        <FormItem className="flex items-center justify-between">
-                                            <div>
-                                                <FormLabel>Single-use</FormLabel>
-                                                <FormDescription className="text-xs">
-                                                    Deactivate after the first click
+                                        <FormItem className="flex items-center justify-between p-1">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-sm font-bold">Ghost Mode</FormLabel>
+                                                <FormDescription className="text-xs font-medium">
+                                                    Purge destination after first resolution
                                                 </FormDescription>
                                             </div>
                                             <FormControl>
@@ -418,68 +422,68 @@ export function CreateLinkClient() {
                                     )}
                                 />
 
-                                <Separator />
+                                <Separator className="bg-border" />
 
-                                {/* Click limit */}
-                                <FormField
-                                    control={form.control}
-                                    name="maxClicks"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Click limit</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="number"
-                                                    min={1}
-                                                    placeholder="Unlimited"
-                                                    className="bg-background"
-                                                />
-                                            </FormControl>
-                                            <FormDescription className="text-xs">
-                                                Deactivate after N clicks
-                                            </FormDescription>
-                                        </FormItem>
-                                    )}
-                                />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="maxClicks"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-bold uppercase tracking-widest">Traffic Cap</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        type="number"
+                                                        min={1}
+                                                        placeholder="∞"
+                                                        className="h-11 bg-background border-border rounded-xl font-bold shadow-sm"
+                                                    />
+                                                </FormControl>
+                                                <FormDescription className="text-[10px] uppercase font-bold text-muted-foreground">Maximum hits allowed</FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                {/* Expiry date */}
-                                <FormField
-                                    control={form.control}
-                                    name="expiresAt"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Expires at</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="datetime-local"
-                                                    className="bg-background"
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
+                                    <FormField
+                                        control={form.control}
+                                        name="expiresAt"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-bold uppercase tracking-widest">Terminal Date</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        type="datetime-local"
+                                                        className="h-11 bg-background border-border rounded-xl font-bold text-xs shadow-sm"
+                                                    />
+                                                </FormControl>
+                                                <FormDescription className="text-[10px] uppercase font-bold text-muted-foreground">Auto-purge timestamp</FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
-                                {/* Webhook */}
+                                <Separator className="bg-border" />
+
                                 <FormField
                                     control={form.control}
                                     name="webhookUrl"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Webhook URL</FormLabel>
+                                            <FormLabel className="text-xs font-bold uppercase tracking-widest font-mono">Event Relay (Webhook)</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     {...field}
                                                     type="url"
-                                                    placeholder="https://hooks.example.com/click"
-                                                    className="bg-background"
+                                                    placeholder="https://relays.server.com/callback"
+                                                    className="h-11 bg-background border-border rounded-xl text-xs font-mono shadow-sm"
                                                 />
                                             </FormControl>
-                                            <FormDescription className="text-xs">
-                                                POST request sent on every click
+                                            <FormDescription className="text-[10px] uppercase font-bold text-muted-foreground leading-relaxed">
+                                                Relay packet details to external terminal on every resolution
                                             </FormDescription>
-                                            <FormMessage />
+                                            <FormMessage className="text-xs font-bold" />
                                         </FormItem>
                                     )}
                                 />
@@ -487,24 +491,29 @@ export function CreateLinkClient() {
                         </Card>
                     )}
 
-                    {/* Submit */}
-                    <div className="flex gap-3 pt-1">
+                    {/* Actions */}
+                    <div className="flex items-center gap-4 pt-4 border-t border-border mt-8">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={() => router.back()}
+                            className="h-12 px-8 rounded-xl font-bold text-muted-foreground hover:text-foreground border-border bg-background shadow-sm hover:bg-muted"
                             disabled={creating}
                         >
-                            Cancel
+                            Abort
                         </Button>
-                        <Button type="submit" disabled={creating} className="flex-1">
+                        <Button
+                            type="submit"
+                            disabled={creating}
+                            className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all border border-primary/20"
+                        >
                             {creating ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Creating…
-                                </>
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Initialising Node...
+                                </div>
                             ) : (
-                                "Create link"
+                                "Provision Endpoint"
                             )}
                         </Button>
                     </div>

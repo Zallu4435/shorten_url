@@ -17,6 +17,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
+import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { formatNumber } from "@/lib/utils";
 import type { UserAnalyticsOverview } from "@/types";
 
@@ -28,57 +31,78 @@ export default function AnalyticsPage() {
     const analytics = data?.myAnalytics;
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-xl font-semibold tracking-tight">Analytics</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                    Performance across all your links
-                </p>
+        <div className="max-w-[1400px] mx-auto space-y-12 py-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+            {/* Page Header */}
+            <PageHeader
+                title="Network Intelligence"
+                description="In-depth performance analysis across your entire link matrix."
+                icon={BarChart3}
+                stats={{
+                    label: "Link Matrix",
+                    value: analytics?.totalUrls ?? 0,
+                    unit: "NODES"
+                }}
+            />
+
+            {/* Global Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard label="Matrix Nodes" value={analytics?.totalUrls ?? 0} icon={Link2} loading={loading} />
+                <StatCard label="Total Throughput" value={analytics?.totalClicks ?? 0} icon={MousePointerClick} loading={loading} />
+                <StatCard label="Unique Sentinels" value={analytics?.uniqueClicks ?? 0} icon={BarChart3} loading={loading} />
+                <StatCard label="Flux (30d)" value={analytics?.clicksThisMonth ?? 0} icon={TrendingUp} loading={loading} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <StatCard label="Total links" value={analytics?.totalUrls ?? 0} icon={Link2} loading={loading} />
-                <StatCard label="Total clicks" value={analytics?.totalClicks ?? 0} icon={MousePointerClick} loading={loading} />
-                <StatCard label="Unique clicks" value={analytics?.uniqueClicks ?? 0} icon={BarChart3} loading={loading} />
-                <StatCard label="This month" value={analytics?.clicksThisMonth ?? 0} icon={TrendingUp} loading={loading} />
-            </div>
-
-            {/* Top URLs */}
-            <Card>
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                        Top performing links
-                    </CardTitle>
+            {/* Performance Hierarchy */}
+            <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
+                <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between border-b border-border">
+                    <div className="space-y-1">
+                        <TechnicalIndicator label="Performance Hierarchy" icon={TrendingUp} className="mb-0" />
+                        <h2 className="text-3xl font-black tracking-tighter text-foreground">Top Performing Nodes</h2>
+                    </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                     {loading ? (
-                        <div className="space-y-3">
+                        <div className="p-10 space-y-4">
                             {Array.from({ length: 5 }).map((_, i) => (
-                                <Skeleton key={i} className="h-10 w-full" />
+                                <Skeleton key={i} className="h-16 w-full rounded-2xl" />
                             ))}
                         </div>
                     ) : (
                         <div className="divide-y divide-border">
-                            {(analytics?.topUrls ?? []).map((url, i) => (
-                                <div key={url.id} className="flex items-center gap-4 py-3">
-                                    <span className="text-sm font-mono text-muted-foreground w-6">
-                                        {i + 1}
+                            {(analytics?.topUrls ?? []).map((url: any, i: number) => (
+                                <div key={url.id} className="flex items-center gap-6 p-8 hover:bg-muted/30 transition-colors group">
+                                    <span className="text-xl font-black text-muted-foreground w-8 tabular-nums italic">
+                                        {(i + 1).toString().padStart(2, '0')}
                                     </span>
                                     <div className="flex-1 min-w-0">
-                                        <Link href={`/links/${url.id}`} className="text-sm font-medium hover:text-primary transition-colors">
+                                        <Link
+                                            href={`/links/${url.id}`}
+                                            className="text-lg font-black text-foreground hover:text-primary transition-colors block tracking-tighter"
+                                        >
                                             /{url.slug}
                                         </Link>
-                                        {url.title && (
-                                            <p className="text-xs text-muted-foreground truncate">{url.title}</p>
-                                        )}
+                                        <p className="text-xs font-bold text-muted-foreground truncate uppercase tracking-widest mt-0.5">
+                                            {url.title || "External Endpoint"}
+                                        </p>
                                     </div>
-                                    <Badge variant="secondary" className="tabular-nums">
-                                        {formatNumber(url.clickCount)} clicks
-                                    </Badge>
+                                    <div className="shrink-0 flex flex-col items-end">
+                                        <span className="text-2xl font-black text-foreground tabular-nums leading-none">
+                                            {formatNumber(url.clickCount)}
+                                        </span>
+                                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter mt-1">
+                                            Resolutions
+                                        </span>
+                                    </div>
                                 </div>
                             ))}
                             {!loading && !analytics?.topUrls?.length && (
-                                <p className="text-sm text-muted-foreground py-6 text-center">No data yet</p>
+                                <div className="p-20">
+                                    <EmptyTerminal
+                                        title="No Data Discovered"
+                                        description="Node performance metrics will appear here once traffic is detected across your network."
+                                        icon={Link2}
+                                    />
+                                </div>
                             )}
                         </div>
                     )}

@@ -2,74 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-    BarChart3,
-    Link2,
-    LayoutDashboard,
-    Plus,
-    Settings,
-    Shield,
-    Users,
-    ExternalLink,
-} from "lucide-react";
+import { Plus, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
-
-interface NavItem {
-    label: string;
-    href: string;
-    icon: React.ElementType;
-    exact?: boolean;
-    adminOnly?: boolean;
-    badge?: string;
-}
-
-const navItems: NavItem[] = [
-    {
-        label: "Dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
-        exact: true,
-    },
-    {
-        label: "My Links",
-        href: "/links",
-        icon: Link2,
-    },
-    {
-        label: "Analytics",
-        href: "/analytics",
-        icon: BarChart3,
-    },
-    {
-        label: "Settings",
-        href: "/settings",
-        icon: Settings,
-    },
-];
-
-const adminItems: NavItem[] = [
-    {
-        label: "Admin",
-        href: "/admin",
-        icon: Shield,
-        adminOnly: true,
-        exact: true,
-    },
-    {
-        label: "Users",
-        href: "/admin/users",
-        icon: Users,
-        adminOnly: true,
-    },
-    {
-        label: "All URLs",
-        href: "/admin/urls",
-        icon: ExternalLink,
-        adminOnly: true,
-    },
-];
+import { MAIN_NAV_ITEMS, ADMIN_NAV_ITEMS, NavItem } from "@/lib/navigation";
 
 function NavLink({ item }: { item: NavItem }) {
     const pathname = usePathname();
@@ -82,21 +19,24 @@ function NavLink({ item }: { item: NavItem }) {
         <Link
             href={item.href}
             className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                "group relative flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all duration-300",
                 isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-primary/10 text-primary font-black shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted font-bold"
             )}
         >
+            {isActive && (
+                <div className="absolute left-0 h-6 w-1 rounded-r-full bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+            )}
             <Icon
                 className={cn(
-                    "h-4 w-4 shrink-0 transition-colors",
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    "h-5 w-5 shrink-0 transition-all duration-300",
+                    isActive ? "text-primary scale-110" : "text-muted-foreground group-hover:text-foreground"
                 )}
             />
-            {item.label}
+            <span className="tracking-tight">{item.label}</span>
             {item.badge && (
-                <Badge variant="secondary" className="ml-auto text-xs py-0 px-1.5">
+                <Badge variant="secondary" className="ml-auto bg-primary/20 text-primary border-none text-[10px] font-black uppercase tracking-tighter px-1.5 h-4">
                     {item.badge}
                 </Badge>
             )}
@@ -108,48 +48,65 @@ export function Sidebar() {
     const { user } = useAuth();
 
     return (
-        <aside className="flex h-full w-[220px] shrink-0 flex-col border-r border-border bg-sidebar">
-            {/* Logo */}
-            <div className="flex h-14 items-center border-b border-border px-4">
-                <Link href="/dashboard" className="flex items-center gap-2.5">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                        <Link2 className="h-3.5 w-3.5 text-primary-foreground" />
+        <aside className="flex h-full w-[260px] shrink-0 flex-col border-r border-border bg-sidebar p-4 shadow-sm">
+            {/* Branding */}
+            <div className="mb-10 px-4 pt-4">
+                <Link href="/dashboard" className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
+                        <Zap className="h-5 w-5 text-primary-foreground fill-primary-foreground" />
                     </div>
-                    <span className="text-sm font-semibold tracking-tight">
-                        Shorten URL
+                    <span className="text-xl font-bold tracking-tight text-foreground">
+                        Shorten<span className="text-primary font-black uppercase">URL</span>
                     </span>
                 </Link>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-                {/* Quick create */}
+            {/* Quick Action */}
+            <div className="px-2 mb-8">
                 <Link
                     href="/links/new"
-                    className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 mb-3"
+                    className="flex items-center justify-center gap-2 w-full rounded-xl bg-primary text-primary-foreground px-4 py-3 text-sm font-bold transition-all hover:opacity-90 shadow-sm"
                 >
-                    <Plus className="h-4 w-4" />
-                    New link
+                    <Plus className="h-4 w-4 stroke-[3px]" />
+                    Create New Link
                 </Link>
+            </div>
 
-                {navItems.map((item) => (
-                    <NavLink key={item.href} item={item} />
-                ))}
+            {/* Navigation */}
+            <div className="flex-1 space-y-8 overflow-y-auto px-2">
+                <div>
+                    <p className="px-4 mb-4 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                        Main Network
+                    </p>
+                    <nav className="space-y-1">
+                        {MAIN_NAV_ITEMS.map((item) => (
+                            <NavLink key={item.href} item={item} />
+                        ))}
+                    </nav>
+                </div>
 
                 {/* Admin section */}
                 {user?.isAdmin && (
-                    <>
-                        <div className="pt-3 pb-1 px-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                                Admin
-                            </p>
-                        </div>
-                        {adminItems.map((item) => (
-                            <NavLink key={item.href} item={item} />
-                        ))}
-                    </>
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <p className="px-4 mb-4 text-[11px] font-black uppercase tracking-[0.2em] text-primary">
+                            Central Command
+                        </p>
+                        <nav className="space-y-1">
+                            {ADMIN_NAV_ITEMS.map((item) => (
+                                <NavLink key={item.href} item={item} />
+                            ))}
+                        </nav>
+                    </div>
                 )}
-            </nav>
+            </div>
+
+            {/* Footer / Status */}
+            <div className="mt-auto px-4 py-6 border-t border-border">
+                <div className="flex items-center gap-3 rounded-xl bg-muted p-2.5">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">System Online</span>
+                </div>
+            </div>
         </aside>
     );
 }

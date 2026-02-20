@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2, Link2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Link2, Mail, Lock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,10 +16,10 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -44,8 +44,7 @@ export function LoginForm() {
             toast.success("Welcome back!");
             router.replace("/dashboard");
         } catch (err) {
-            const message =
-                err instanceof Error ? err.message : "Invalid email or password";
+            const message = err instanceof Error ? err.message : "Invalid credentials";
             toast.error(message);
             form.setError("email", { message: " " });
             form.setError("password", { message: "Invalid email or password" });
@@ -56,113 +55,114 @@ export function LoginForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {/* Brand mark */}
-                <div className="flex items-center gap-2 mb-8">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                        <Link2 className="h-4 w-4 text-primary-foreground" />
-                    </div>
-                    <span className="text-lg font-semibold tracking-tight">
-                        Shorten URL
-                    </span>
-                </div>
-
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        Sign in to your account to continue
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Header */}
+                <div className="space-y-2">
+                    <h2 className="text-4xl font-black tracking-tight text-white">
+                        Sign in
+                    </h2>
+                    <p className="text-base font-medium text-zinc-400">
+                        Continue your journey with ShortenURL
                     </p>
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <Input
-                                    {...field}
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    autoComplete="email"
-                                    autoFocus
-                                    disabled={isSubmitting}
-                                    className="bg-background"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="space-y-4">
+                    {/* Email */}
+                    <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field, fieldState }) => (
+                            <FormItem className="space-y-1.5">
+                                <label className="text-xs font-black uppercase tracking-widest text-zinc-500 ml-1">Email Address</label>
+                                <FormControl>
+                                    <div className="relative group">
+                                        <Mail className={cn(
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
+                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                        )} />
+                                        <Input
+                                            {...field}
+                                            type="email"
+                                            placeholder="name@company.com"
+                                            disabled={isSubmitting}
+                                            className={cn(
+                                                "h-14 pl-12 pr-4 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
+                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                            )}
+                                        />
+                                    </div>
+                                </FormControl>
+                                <FormMessage className="text-sm font-bold text-red-400" />
+                            </FormItem>
+                        )}
+                    />
 
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <div className="flex items-center justify-between">
-                                <FormLabel>Password</FormLabel>
-                                <Link
-                                    href="#"
-                                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
-                            <FormControl>
-                                <div className="relative">
-                                    <Input
-                                        {...field}
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        autoComplete="current-password"
-                                        disabled={isSubmitting}
-                                        className="bg-background pr-10"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword((v) => !v)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                        tabIndex={-1}
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                    >
-                                        {showPassword ? (
-                                            <EyeOff className="h-4 w-4" />
-                                        ) : (
-                                            <Eye className="h-4 w-4" />
-                                        )}
-                                    </button>
+                    {/* Password */}
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field, fieldState }) => (
+                            <FormItem className="space-y-1.5">
+                                <div className="flex items-center justify-between ml-1">
+                                    <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Password</label>
+                                    <Link href="/forgot-password" className="text-xs font-bold text-violet-400 hover:text-violet-300 transition-colors">Forgot?</Link>
                                 </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                <FormControl>
+                                    <div className="relative group">
+                                        <Lock className={cn(
+                                            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
+                                            fieldState.error ? "text-red-400" : "text-zinc-500 group-focus-within:text-violet-400"
+                                        )} />
+                                        <Input
+                                            {...field}
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••••••"
+                                            disabled={isSubmitting}
+                                            className={cn(
+                                                "h-14 pl-12 pr-12 text-base font-medium bg-white/5 border-white/10 rounded-2xl transition-all duration-200 focus:bg-white/10 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10",
+                                                fieldState.error && "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/10"
+                                            )}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((v) => !v)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                            tabIndex={-1}
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                        </button>
+                                    </div>
+                                </FormControl>
+                                <FormMessage className="text-sm font-bold text-red-400" />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
+                {/* Submit */}
                 <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-base font-black tracking-tight text-white shadow-xl shadow-violet-600/20 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
                     disabled={isSubmitting}
-                    size="default"
                 >
                     {isSubmitting ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Signing in…
-                        </>
+                        <Loader2 className="h-6 w-6 animate-spin" />
                     ) : (
-                        "Sign in"
+                        <span className="flex items-center gap-2">
+                            Sign in to Account
+                            <ArrowRight className="h-5 w-5" />
+                        </span>
                     )}
                 </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
-                    Don&apos;t have an account?{" "}
+                {/* Footer */}
+                <p className="text-center text-sm font-medium text-zinc-500">
+                    New here?{" "}
                     <Link
                         href="/register"
-                        className="font-medium text-foreground underline-offset-4 hover:underline"
+                        className="font-black text-white hover:text-violet-400 underline decoration-violet-500/30 underline-offset-4 transition-all"
                     >
-                        Create one
+                        Create an account for free
                     </Link>
                 </p>
             </form>
