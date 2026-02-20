@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─────────────────────────────────────────────────────────
+   Design Tokens — Violet × Dark (MAANG-level)
+   ───────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Light Mode
+   ───────────────────────────────────────────────────────── */
+:root {
+  --radius: 0.5rem;
+
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.13 0 0);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.13 0 0);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.13 0 0);
+
+  /* Violet accent */
+  --primary: oklch(0.54 0.22 277);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.96 0.006 277);
+  --secondary-foreground: oklch(0.28 0.06 277);
+
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.50 0 0);
+
+  --accent: oklch(0.95 0.01 277);
+  --accent-foreground: oklch(0.28 0.06 277);
+
+  --destructive: oklch(0.58 0.24 27);
+
+  --border: oklch(0.91 0 0);
+  --input: oklch(0.91 0 0);
+  --ring: oklch(0.54 0.22 277);
+
+  /* Charts — violet palette */
+  --chart-1: oklch(0.54 0.22 277);
+  --chart-2: oklch(0.60 0.18 230);
+  --chart-3: oklch(0.70 0.17 162);
+  --chart-4: oklch(0.73 0.20 84);
+  --chart-5: oklch(0.65 0.24 16);
+
+  /* Sidebar */
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.13 0 0);
+  --sidebar-primary: oklch(0.54 0.22 277);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.01 277);
+  --sidebar-accent-foreground: oklch(0.28 0.06 277);
+  --sidebar-border: oklch(0.91 0 0);
+  --sidebar-ring: oklch(0.54 0.22 277);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Dark Mode — zinc-950 base, violet accent
+   ───────────────────────────────────────────────────────── */
+.dark {
+  --background: oklch(0.095 0 0);
+  --foreground: oklch(0.97 0 0);
+
+  --card: oklch(0.13 0 0);
+  --card-foreground: oklch(0.97 0 0);
+
+  --popover: oklch(0.13 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+
+  /* Violet accent — brighter in dark */
+  --primary: oklch(0.62 0.22 277);
+  --primary-foreground: oklch(0.13 0 0);
+
+  --secondary: oklch(0.19 0.01 277);
+  --secondary-foreground: oklch(0.97 0 0);
+
+  --muted: oklch(0.19 0 0);
+  --muted-foreground: oklch(0.60 0 0);
+
+  --accent: oklch(0.20 0.02 277);
+  --accent-foreground: oklch(0.97 0 0);
+
+  --destructive: oklch(0.63 0.22 22);
+
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.62 0.22 277);
+
+  /* Charts — vivid for dark bg */
+  --chart-1: oklch(0.62 0.22 277);
+  --chart-2: oklch(0.65 0.18 210);
+  --chart-3: oklch(0.70 0.17 162);
+  --chart-4: oklch(0.72 0.20 84);
+  --chart-5: oklch(0.65 0.24 16);
+
+  /* Sidebar */
+  --sidebar: oklch(0.13 0 0);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: oklch(0.62 0.22 277);
+  --sidebar-primary-foreground: oklch(0.13 0 0);
+  --sidebar-accent: oklch(0.20 0.02 277);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.62 0.22 277);
+}
+
+/* ─────────────────────────────────────────────────────────
+   Base Styles
+   ───────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Precision scrollbar — subtle */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Utilities
+   ───────────────────────────────────────────────────────── */
+@layer utilities {
+
+  /* Gradient text — violet → indigo */
+  .gradient-text {
+    @apply bg-gradient-to-r from-violet-500 to-indigo-500 bg-clip-text text-transparent;
+  }
+
+  /* Glass card */
+  .glass {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50;
+  }
+
+  /* Subtle glow on primary elements */
+  .glow {
+    box-shadow: 0 0 40px -8px oklch(0.62 0.22 277 / 40%);
+  }
+
+  /* Data table row hover */
+  .row-hover {
+    @apply transition-colors duration-150 hover:bg-muted/50;
+  }
+
+  /* Animated underline on links */
+  .link-underline {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary after:transition-all after:duration-200 hover:after:w-full;
+  }
+}
