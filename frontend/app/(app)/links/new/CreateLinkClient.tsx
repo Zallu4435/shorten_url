@@ -123,7 +123,7 @@ export function CreateLinkClient() {
         setAiLoading(true);
         setMetaAiGenerated({ title: false, description: false }); // reset badges before new scan
         setSlugSuggestions([]);
-        console.log("Starting AI Synthesis for node:", url);
+
 
         try {
             const [slugResult, metaResult] = await Promise.allSettled([
@@ -145,14 +145,14 @@ export function CreateLinkClient() {
                 metaResult.value.data?.generateUrlMetadata
             ) {
                 const meta = metaResult.value.data.generateUrlMetadata;
-                console.log("Synthesized Metadata Found:", meta);
+
 
                 // Populate if field is empty OR was previously set by AI (safe to overwrite AI-generated content)
                 const currentTitle = form.getValues("title")?.trim();
                 const currentDesc = form.getValues("description")?.trim();
 
                 if (meta.title && (!currentTitle || metaAiGenerated.title)) {
-                    console.log("Provisioning Title:", meta.title);
+
                     form.setValue("title", meta.title, {
                         shouldValidate: true,
                         shouldDirty: true,
@@ -162,7 +162,7 @@ export function CreateLinkClient() {
                     changesSynthesized++;
                 }
                 if (meta.description && (!currentDesc || metaAiGenerated.description)) {
-                    console.log("Provisioning Description:", meta.description);
+
                     form.setValue("description", meta.description, {
                         shouldValidate: true,
                         shouldDirty: true,
@@ -183,7 +183,7 @@ export function CreateLinkClient() {
                 });
             }
         } catch (error) {
-            console.error("AI Node Diagnostics Error:", error);
+
             toast.error("AI node diagnostics failed");
         } finally {
             setAiLoading(false);
