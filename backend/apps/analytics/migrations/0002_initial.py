@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('analytics', '0001_initial'),
-        ('urls', '0001_initial'),
+        ('links', '0001_initial'),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('urls', '0002_initial'),
+        ('links', '0002_initial'),
     ]
 
     operations = [
