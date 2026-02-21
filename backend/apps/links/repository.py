@@ -5,12 +5,11 @@ No business logic — just DB read/write.
 """
 
 import logging
-from django.db import models as db_models
 from django.db.models import F, Q
 from django.utils import timezone
 
-from apps.urls.models import ShortURL
-from shared.exceptions import URLNotFoundError, PermissionDeniedError
+from apps.links.models import ShortURL
+from shared.exceptions import URLNotFoundError
 from shared.constants import MAX_PAGE_SIZE
 
 logger = logging.getLogger(__name__)

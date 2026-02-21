@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Moon, Sun, LogOut, User, Settings, Shield, Bell, Search } from "lucide-react";
+import { Moon, Sun, LogOut, Settings, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ import { getInitials, stringToColor, cn } from "@/lib/utils";
 
 import { useQuery } from "@apollo/client";
 import { MY_URLS_QUERY, ALL_USERS_QUERY } from "@/lib/graphql/queries";
-import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Command, CommandInput } from "@/components/ui/command";
 import type { ShortURL, AdminUser } from "@/types";
 
@@ -74,6 +74,7 @@ export function Topbar() {
 
     // Prevent hydration mismatch
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

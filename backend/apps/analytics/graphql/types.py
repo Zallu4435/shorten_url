@@ -151,7 +151,7 @@ class UserAnalyticsOverviewType(graphene.ObjectType):
     clicks_this_week = graphene.Int(required=True)
     clicks_this_month = graphene.Int(required=True)
     top_urls = graphene.List(
-        "apps.urls.graphql.types.ShortURLType",
+        "apps.links.graphql.types.ShortURLType",
         description="Top 5 most-clicked short URLs."
     )
     clicks_by_date = graphene.List(

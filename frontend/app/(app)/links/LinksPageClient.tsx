@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
-import { Plus, Link as LinkIcon, ArrowUpDown } from "lucide-react";
+import { Plus, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 
 import { MY_URLS_QUERY } from "@/lib/graphql/queries";
-import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useDebounce } from "@/hooks/useDebounce";
 import { LinkCard } from "@/components/links/LinkCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

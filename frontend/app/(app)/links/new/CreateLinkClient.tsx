@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createLinkSchema, type CreateLinkValues } from "@/lib/validations/links";
@@ -13,9 +13,7 @@ import {
     Loader2,
     Scan,
     ChevronDown,
-    ChevronUp,
     Link2,
-    Check,
     ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -44,9 +42,7 @@ import {
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { SlugSuggestion, URLMetadata } from "@/types";
@@ -188,8 +184,7 @@ export function CreateLinkClient() {
                     description: "The analysis returned no additional insights for this link."
                 });
             }
-        } catch (error) {
-
+        } catch {
             toast.error("AI node diagnostics failed");
         } finally {
             setAiLoading(false);
@@ -422,7 +417,7 @@ export function CreateLinkClient() {
                                                         Why this slug?
                                                     </p>
                                                     <p className="text-xs font-bold text-muted-foreground leading-relaxed italic">
-                                                        "{slugSuggestions.find(s => s.slug === form.watch("slug"))?.reason}"
+                                                        &quot;{slugSuggestions.find(s => s.slug === form.watch("slug"))?.reason}&quot;
                                                     </p>
                                                 </div>
                                             )}

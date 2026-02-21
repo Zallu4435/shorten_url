@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Lock, ShieldCheck, Loader2, ArrowRight, AlertCircle, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { cn } from "@/lib/utils";
 
 export function PasswordPromptClient() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const slug = searchParams.get("slug");
     const errorParam = searchParams.get("error");
@@ -48,7 +48,7 @@ export function PasswordPromptClient() {
                 toast.error("Decryption failed. Please verify credentials.");
                 setIsSubmitting(false);
             }
-        } catch (err) {
+        } catch {
             setLocalError("Network Protocol Error: Could not reach verification node");
             toast.error("Verification unavailable");
             setIsSubmitting(false);
@@ -64,7 +64,7 @@ export function PasswordPromptClient() {
                 <h1 className="text-xl font-black uppercase tracking-tighter mb-2">Protocol Error</h1>
                 <p className="text-sm font-bold text-muted-foreground mb-6">No slug identifier provided in request.</p>
                 <Button asChild variant="outline" className="rounded-xl px-8 font-black uppercase tracking-widest text-[11px]">
-                    <a href="/">Return to Home</a>
+                    <Link href="/">Return to Home</Link>
                 </Button>
             </div>
         );

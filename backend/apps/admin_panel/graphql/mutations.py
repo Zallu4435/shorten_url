@@ -21,7 +21,7 @@ import graphene
 
 from apps.admin_panel import services
 from apps.users.graphql.types import UserType, MessageType
-from apps.urls.graphql.types import ShortURLType
+from apps.links.graphql.types import ShortURLType
 from shared.decorators import admin_required
 
 

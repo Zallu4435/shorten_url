@@ -51,7 +51,7 @@ def generate_unique_slug(length: int = SLUG_AUTO_LENGTH) -> str:
     Raises:
         RuntimeError: If unable to generate a unique slug after 10 attempts.
     """
-    from apps.urls.repository import slug_exists
+    from apps.links.repository import slug_exists
 
     charset = string.ascii_lowercase + string.digits  # a-z + 0-9
 

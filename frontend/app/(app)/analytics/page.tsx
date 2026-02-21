@@ -5,16 +5,11 @@ import { BarChart, Link as LinkIcon, MousePointer2, TrendingUp } from "lucide-re
 
 import { MY_ANALYTICS_QUERY } from "@/lib/graphql/queries";
 import { StatCard } from "@/components/analytics/StatCard";
-import { ClicksChart } from "@/components/analytics/ClicksChart";
-import { DeviceChart } from "@/components/analytics/DeviceChart";
-import { CountryChart } from "@/components/analytics/CountryChart";
 import {
     Card,
     CardContent,
     CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -74,7 +69,7 @@ export default function AnalyticsPage() {
                         </div>
                     ) : (
                         <div className="divide-y divide-border">
-                            {(analytics?.topUrls ?? []).map((url: any, i: number) => (
+                            {(analytics?.topUrls ?? []).map((url: { id: string; slug: string; title?: string; clickCount: number }, i: number) => (
                                 <div key={url.id} className="flex items-center gap-6 p-8 hover:bg-muted/30 transition-colors group">
                                     <span className="text-xl font-black text-muted-foreground w-8 tabular-nums italic">
                                         {(i + 1).toString().padStart(2, '0')}

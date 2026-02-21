@@ -6,7 +6,7 @@ Adds admin-specific aggregate types.
 
 import graphene
 from apps.users.graphql.types import UserType
-from apps.urls.graphql.types import ShortURLType
+from apps.links.graphql.types import ShortURLType
 
 
 class PaginatedUsersType(graphene.ObjectType):

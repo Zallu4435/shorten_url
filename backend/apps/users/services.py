@@ -274,7 +274,7 @@ def delete_user_account(user: CustomUser) -> bool:
     Deactivate a user account (soft-delete).
     Revokes all tokens and suspends all associated links atomically.
     """
-    from apps.urls.models import ShortURL
+    from apps.links.models import ShortURL
 
     with transaction.atomic():
         # 1. Deactivate the user

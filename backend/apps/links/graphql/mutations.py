@@ -7,8 +7,8 @@ URLs GraphQL Mutations
 
 import graphene
 
-from apps.urls import services
-from apps.urls.graphql.types import ShortURLType
+from apps.links import services
+from apps.links.graphql.types import ShortURLType
 from apps.users.graphql.types import MessageType
 from shared.decorators import login_required
 

@@ -1,11 +1,11 @@
 """
-apps.urls — URL Shortening Core
+apps.links — URL Shortening Core
 
 Models:
-    from apps.urls.models import ShortURL
+    from apps.links.models import ShortURL
 
 Repository (data access):
-    from apps.urls.repository import (
+    from apps.links.repository import (
         create_short_url,
         get_by_slug,
         get_by_id,
@@ -19,7 +19,7 @@ Repository (data access):
     )
 
 Services (business logic — validation pipeline + redirect):
-    from apps.urls.services import (
+    from apps.links.services import (
         create_short_url,       # Full 6-layer validation + DB write
         resolve_slug,           # 12-step redirect resolution
         update_short_url,       # Ownership-checked update
@@ -28,11 +28,11 @@ Services (business logic — validation pipeline + redirect):
     )
 
 Utilities:
-    from apps.urls.utils import (
+    from apps.links.utils import (
         generate_unique_slug,   # Collision-safe random slug
         generate_qr_code,       # Background QR image generation
     )
 
 Views (plain Django — NOT GraphQL):
-    from apps.urls.views import ShortURLRedirectView, VerifyURLPasswordView
+    from apps.links.views import ShortURLRedirectView, VerifyURLPasswordView
 """

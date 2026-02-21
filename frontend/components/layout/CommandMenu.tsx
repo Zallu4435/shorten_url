@@ -8,7 +8,6 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
-import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ShortURL, AdminUser } from "@/types";

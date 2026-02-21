@@ -7,7 +7,6 @@ import graphene
 
 from apps.users.graphql.types import UserType
 from shared.decorators import login_required
-from shared.exceptions import AuthenticationError
 
 
 class UserQuery(graphene.ObjectType):

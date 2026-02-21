@@ -16,6 +16,7 @@ import {
     Activity,
     Webhook,
     RefreshCw,
+    LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,7 +29,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { PageLoading } from "@/components/shared/PageLoading";
 import { cn } from "@/lib/utils";
@@ -50,7 +50,7 @@ function SettingRow({
     label: string;
     description?: string;
     children: React.ReactNode;
-    icon?: any;
+    icon?: LucideIcon;
 }) {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 py-8 border-b border-border/60 last:border-0 first:pt-0 group hover:bg-muted/5 transition-colors px-2 -mx-2 rounded-2xl">

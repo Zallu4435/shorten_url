@@ -116,7 +116,7 @@ class AnalyticsQuery(graphene.ObjectType):
         user = info.context.user
 
         # Verify ownership (service layer handles it)
-        from apps.urls.repository import get_by_id as get_url
+        from apps.links.repository import get_by_id as get_url
         from shared.exceptions import PermissionDeniedError
         short_url = get_url(str(url_id))
         if short_url.user_id and str(short_url.user_id) != str(user.id) and not user.is_admin:

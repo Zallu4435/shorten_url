@@ -30,7 +30,7 @@ export function ResetPasswordForm() {
         defaultValues: { password: "", confirmPassword: "" },
     });
 
-    const onSubmit = async (values: ResetPasswordValues) => {
+    const onSubmit = async () => {
         try {
             await new Promise((resolve) => setTimeout(resolve, 2000));
             setIsSuccess(true);

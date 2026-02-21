@@ -46,7 +46,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "apps.users",
-    "apps.urls",
+    "apps.links",
     "apps.analytics",
     "apps.admin_panel",
     "apps.ai_integration",

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import {
     BarChart,
-    Link as LinkIcon,
     Scan,
     Shield,
     Activity,

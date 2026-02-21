@@ -27,7 +27,7 @@ export function ForgotPasswordForm() {
         defaultValues: { email: "" },
     });
 
-    const onSubmit = async (values: ForgotPasswordValues) => {
+    const onSubmit = async () => {
         try {
             await new Promise((resolve) => setTimeout(resolve, 1500));
             setIsSubmitted(true);
@@ -74,7 +74,7 @@ export function ForgotPasswordForm() {
                         Forgot password?
                     </h2>
                     <p className="text-sm font-medium text-muted-foreground">
-                        Enter your email and we'll send you a recovery link.
+                        Enter your email and we&apos;ll send you a recovery link.
                     </p>
                 </div>
 

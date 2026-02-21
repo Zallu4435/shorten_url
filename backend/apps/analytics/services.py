@@ -15,7 +15,7 @@ from django.conf import settings
 
 from apps.analytics import repository
 from apps.analytics.models import Click
-from shared.constants import UNKNOWN_VALUE, DEVICE_TYPES
+from shared.constants import UNKNOWN_VALUE
 from shared.exceptions import URLNotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ def get_analytics_summary(url_id: str, user, start_date: date = None, end_date: 
         }
     """
     # Verify URL access
-    from apps.urls.repository import get_by_id as get_url_by_id
+    from apps.links.repository import get_by_id as get_url_by_id
     try:
         short_url = get_url_by_id(url_id)
     except URLNotFoundError:
@@ -130,13 +130,11 @@ def get_user_analytics_overview(user, start_date: date = None, end_date: date = 
     Aggregate analytics across ALL of a user's short URLs.
     Returns platform-level stats for the user's dashboard.
     """
-    from apps.urls.models import ShortURL
-    from django.db.models import Sum
+    from apps.links.models import ShortURL
 
     user_url_ids = ShortURL.objects.filter(user=user).values_list("id", flat=True)
 
     from apps.analytics.models import Click as ClickModel
-    from django.db.models import Count
 
     base_qs = ClickModel.objects.filter(short_url_id__in=user_url_ids)
     if start_date:
@@ -162,7 +160,7 @@ def get_user_analytics_overview(user, start_date: date = None, end_date: date = 
     clicks_this_month = base_qs.filter(created_at__gte=month_ago).count()
 
     # Most clicked URLs for the user
-    from apps.urls.models import ShortURL as ShortURLModel
+    from apps.links.models import ShortURL as ShortURLModel
     top_urls = (
         ShortURLModel.objects
         .filter(user=user)

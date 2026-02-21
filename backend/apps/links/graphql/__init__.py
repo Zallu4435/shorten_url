@@ -1,18 +1,18 @@
 """
-apps.urls.graphql — URL Shortening GraphQL layer
+apps.links.graphql — URL Shortening GraphQL layer
 
 Types:
-    from apps.urls.graphql.types import (
+    from apps.links.graphql.types import (
         ShortURLType,
         PaginatedURLsType,
         ResolveSlugPayloadType,
     )
 
 Queries:
-    from apps.urls.graphql.queries import URLQuery
+    from apps.links.graphql.queries import URLQuery
 
 Mutations:
-    from apps.urls.graphql.mutations import (
+    from apps.links.graphql.mutations import (
         URLMutation,
         CreateShortUrl,
         UpdateShortUrl,

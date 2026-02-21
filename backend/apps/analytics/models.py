@@ -38,7 +38,7 @@ class Click(models.Model):
         editable=False,
     )
     short_url = models.ForeignKey(
-        "urls.ShortURL",
+        "links.ShortURL",
         on_delete=models.CASCADE,
         related_name="clicks",
         db_index=True,

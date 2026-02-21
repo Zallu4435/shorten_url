@@ -17,7 +17,6 @@ from apps.admin_panel.graphql.types import (
     PaginatedAdminURLsType,
     UserDetailType,
 )
-from apps.urls.graphql.types import ShortURLType
 from shared.decorators import admin_required
 
 

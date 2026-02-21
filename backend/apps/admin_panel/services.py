@@ -16,12 +16,11 @@ from django.db.models import Sum, Q
 from django.utils import timezone
 
 from apps.users.models import CustomUser, RefreshToken
-from apps.urls.models import ShortURL
+from apps.links.models import ShortURL
 from apps.analytics.models import Click
 from shared.exceptions import (
     UserNotFoundError,
     URLNotFoundError,
-    PermissionDeniedError,
     ValidationError,
     ConflictError,
 )
@@ -285,7 +284,7 @@ def list_all_urls(
 
 def flag_url(admin_user, url_id: str, reason: str) -> ShortURL:
     """Flag a URL as unsafe and deactivate it."""
-    from apps.urls import repository as url_repo
+    from apps.links import repository as url_repo
     if not reason or not reason.strip():
         raise ValidationError("A reason is required when flagging a URL.")
     short_url = url_repo.flag_url(url_id, reason.strip())
@@ -295,7 +294,7 @@ def flag_url(admin_user, url_id: str, reason: str) -> ShortURL:
 
 def unflag_url(admin_user, url_id: str) -> ShortURL:
     """Remove a flag from a URL and reactivate it."""
-    from apps.urls import repository as url_repo
+    from apps.links import repository as url_repo
     short_url = url_repo.unflag_url(url_id)
     logger.info(f"Admin {admin_user.email} unflagged URL id={url_id}")
     return short_url
@@ -303,7 +302,7 @@ def unflag_url(admin_user, url_id: str) -> ShortURL:
 
 def admin_activate_url(admin_user, url_id: str) -> ShortURL:
     """Force-activate a short URL."""
-    from apps.urls import repository as url_repo
+    from apps.links import repository as url_repo
     short_url = _get_url_or_raise(url_id)
     if short_url.is_active:
         raise ConflictError("URL is already active.")
@@ -314,7 +313,7 @@ def admin_activate_url(admin_user, url_id: str) -> ShortURL:
 
 def admin_deactivate_url(admin_user, url_id: str) -> ShortURL:
     """Force-deactivate a short URL."""
-    from apps.urls import repository as url_repo
+    from apps.links import repository as url_repo
     short_url = _get_url_or_raise(url_id)
     if not short_url.is_active:
         raise ConflictError("URL is already inactive.")
@@ -325,7 +324,7 @@ def admin_deactivate_url(admin_user, url_id: str) -> ShortURL:
 
 def admin_delete_url(admin_user, url_id: str) -> bool:
     """Hard delete a short URL (admin override — no ownership check)."""
-    from apps.urls import repository as url_repo
+    from apps.links import repository as url_repo
     _get_url_or_raise(url_id)  # Verify exists first
     deleted = url_repo.delete_short_url(url_id)
     logger.warning(f"Admin {admin_user.email} hard-deleted URL id={url_id}")

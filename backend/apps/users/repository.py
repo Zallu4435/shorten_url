@@ -6,7 +6,6 @@ All DB access for the users app goes through this layer.
 
 import logging
 from datetime import datetime
-from django.utils import timezone
 from django.db import IntegrityError
 
 from apps.users.models import CustomUser, RefreshToken
@@ -182,12 +181,5 @@ def revoke_all_user_tokens(user: CustomUser) -> int:
     return count
 
 
-def delete_expired_tokens() -> int:
-    """
-    Delete all expired refresh tokens from the database.
-    Should be run periodically as a cleanup job.
-    Returns number of tokens deleted.
-    """
-    count, _ = RefreshToken.objects.filter(expires_at__lt=timezone.now()).delete()
-    logger.info(f"Deleted {count} expired refresh token(s).")
+    logger.info(f"Revoked {count} refresh token(s) for user: {user.email}")
     return count

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Link2Off, ArrowLeft, Plus, ShieldAlert } from "lucide-react";
+import { Link2Off, ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";

@@ -23,13 +23,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageLoading } from "@/components/shared/PageLoading";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { FilterSelect } from "@/components/shared/FilterSelect";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
-import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useDebounce } from "@/hooks/useDebounce";
 import { ADMIN_PAGE_SIZE, USER_ROLE_OPTIONS, USER_SORT_OPTIONS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";

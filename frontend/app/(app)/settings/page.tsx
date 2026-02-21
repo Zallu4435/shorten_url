@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
-import { User as UserIcon, ShieldAlert, Lock, Trash2, Settings, Calendar, Save, KeyRound, AlertCircle, CheckCircle2, Loader2, LogOut } from "lucide-react";
+import { User as UserIcon, ShieldAlert, Lock, Trash2, Settings, Calendar, Save, KeyRound, CheckCircle2, Loader2, LogOut } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import {
@@ -62,7 +62,7 @@ export default function SettingsPage() {
     });
 
     const [updateProfile, { loading: updatingProfile }] = useMutation(UPDATE_PROFILE_MUTATION, {
-        onCompleted: (data) => {
+        onCompleted: () => {
             toast.success("Profile updated successfully");
         },
         onError: (err) => {
@@ -71,7 +71,7 @@ export default function SettingsPage() {
     });
 
     const [changePassword, { loading: changingPassword }] = useMutation(CHANGE_PASSWORD_MUTATION, {
-        onCompleted: (data) => {
+        onCompleted: () => {
             toast.success("Password changed. Please log in again.");
             setTimeout(logout, 2000);
         },
@@ -81,7 +81,7 @@ export default function SettingsPage() {
     });
 
     const [deleteAccount, { loading: deletingAccount }] = useMutation(DELETE_ACCOUNT_MUTATION, {
-        onCompleted: (data) => {
+        onCompleted: () => {
             toast.success("Account deleted. Redirecting...");
             logout();
         },
@@ -304,7 +304,7 @@ export default function SettingsPage() {
                                         </DialogHeader>
                                         <div className="space-y-4">
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-2">Type "DELETE" to verify identity</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-2">Type &quot;DELETE&quot; to verify identity</Label>
                                                 <Input
                                                     {...deleteForm.register("confirmText")}
                                                     placeholder="DELETE"

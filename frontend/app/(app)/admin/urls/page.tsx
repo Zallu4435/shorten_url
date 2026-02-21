@@ -22,13 +22,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageLoading } from "@/components/shared/PageLoading";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { FilterSelect } from "@/components/shared/FilterSelect";
-import { useDebounce } from "@/lib/hooks/useDebounce";
+import { useDebounce } from "@/hooks/useDebounce";
 import { ADMIN_PAGE_SIZE, URL_STATUS_OPTIONS, URL_SORT_OPTIONS } from "@/lib/constants";
 import { toast } from "sonner";
 import { formatNumber, timeAgo, truncateUrl, cn } from "@/lib/utils";

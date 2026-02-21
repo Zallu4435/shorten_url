@@ -7,11 +7,11 @@ URLs GraphQL Queries
 
 import graphene
 
-from apps.urls import repository
-from apps.urls import services
-from apps.urls.graphql.types import ShortURLType, ResolveSlugPayloadType, PaginatedURLsType
+from apps.links import repository
+from apps.links import services
+from apps.links.graphql.types import ShortURLType, ResolveSlugPayloadType, PaginatedURLsType
 from shared.decorators import login_required
-from shared.exceptions import URLNotFoundError, PermissionDeniedError
+from shared.exceptions import PermissionDeniedError
 
 
 class URLQuery(graphene.ObjectType):

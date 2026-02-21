@@ -1,0 +1,134 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/admin/users/page.tsx
+  26:10  warning  'PageLoading' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/analytics/page.tsx
+   8:10  warning  'ClicksChart' is defined but never used   @typescript-eslint/no-unused-vars
+   9:10  warning  'DeviceChart' is defined but never used   @typescript-eslint/no-unused-vars
+  10:10  warning  'CountryChart' is defined but never used  @typescript-eslint/no-unused-vars
+  15:5   warning  'CardTitle' is defined but never used     @typescript-eslint/no-unused-vars
+  17:10  warning  'Badge' is defined but never used         @typescript-eslint/no-unused-vars
+  77:67  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/dashboard/DashboardOverview.tsx
+   12:5   warning  'History' is defined but never used       @typescript-eslint/no-unused-vars
+   13:5   warning  'Zap' is defined but never used           @typescript-eslint/no-unused-vars
+   25:5   warning  'CardTitle' is defined but never used     @typescript-eslint/no-unused-vars
+   27:10  warning  'Badge' is defined but never used         @typescript-eslint/no-unused-vars
+   33:33  warning  'truncateUrl' is defined but never used   @typescript-eslint/no-unused-vars
+  156:88  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/links/LinksPageClient.tsx
+  5:34  warning  'ArrowUpDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/links/[id]/edit/LinkSettingsClient.tsx
+  31:10  warning  'Skeleton' is defined but never used      @typescript-eslint/no-unused-vars
+  53:12  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/links/new/CreateLinkClient.tsx
+    3:20   warning  'useEffect' is defined but never used                            @typescript-eslint/no-unused-vars
+   16:5    warning  'ChevronUp' is defined but never used                            @typescript-eslint/no-unused-vars
+   18:5    warning  'Check' is defined but never used                                @typescript-eslint/no-unused-vars
+   47:5    warning  'CardDescription' is defined but never used                      @typescript-eslint/no-unused-vars
+   49:5    warning  'CardTitle' is defined but never used                            @typescript-eslint/no-unused-vars
+  191:18   warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  425:57   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  425:124  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/settings/page.tsx
+   19:91   warning  'AlertCircle' is defined but never used                          @typescript-eslint/no-unused-vars
+   65:23   warning  'data' is defined but never used                                 @typescript-eslint/no-unused-vars
+   74:23   warning  'data' is defined but never used                                 @typescript-eslint/no-unused-vars
+   84:23   warning  'data' is defined but never used                                 @typescript-eslint/no-unused-vars
+  307:153  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  307:160  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/home/zallu/Desktop/shorten_url/frontend/app/(marketing)/layout.tsx
+  8:13  warning  'LinkIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/app/link/[type]/PasswordPromptClient.tsx
+  14:11  warning  'router' is assigned a value but never used                                                                                                            @typescript-eslint/no-unused-vars
+  51:18  warning  'err' is defined but never used                                                                                                                        @typescript-eslint/no-unused-vars
+  67:21  error    Do not use an `<a>` element to navigate to `/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+/home/zallu/Desktop/shorten_url/frontend/app/not-found.tsx
+  4:37  warning  'ShieldAlert' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/analytics/ClicksChart.tsx
+  71:11  warning  'isSinglePoint' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/analytics/StatCard.tsx
+  25:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/zallu/Desktop/shorten_url/frontend/components/analytics/StatCard.tsx:25:13
+  23 |     useEffect(() => {
+  24 |         if (!enabled || target === 0) {
+> 25 |             setCount(target);
+     |             ^^^^^^^^ Avoid calling setState() directly within an effect
+  26 |             return;
+  27 |         }
+  28 |         const start = performance.now();  react-hooks/set-state-in-effect
+
+/home/zallu/Desktop/shorten_url/frontend/components/auth/ForgotPasswordForm.tsx
+  30:29  warning  'values' is defined but never used                               @typescript-eslint/no-unused-vars
+  77:48  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/home/zallu/Desktop/shorten_url/frontend/components/auth/RegisterForm.tsx
+  53:22  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/home/zallu/Desktop/shorten_url/frontend/components/auth/RegisterForm.tsx:53:22
+  51 |     });
+  52 |
+> 53 |     const password = form.watch("password");
+     |                      ^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  54 |     const strength = getPasswordStrength(password);
+  55 |
+  56 |     const onSubmit = async (values: RegisterValues) => {  react-hooks/incompatible-library
+
+/home/zallu/Desktop/shorten_url/frontend/components/auth/ResetPasswordForm.tsx
+  33:29  warning  'values' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/layout/CommandMenu.tsx
+  11:10  warning  'TechnicalIndicator' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/layout/Topbar.tsx
+   4:29  warning  'User' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   4:53  warning  'Bell' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   4:59  warning  'Search' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  77:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/zallu/Desktop/shorten_url/frontend/components/layout/Topbar.tsx:77:9
+  75 |     // Prevent hydration mismatch
+  76 |     useEffect(() => {
+> 77 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  78 |     }, []);
+  79 |
+  80 |     const handleLogout = async () => {  react-hooks/set-state-in-effect
+
+/home/zallu/Desktop/shorten_url/frontend/components/shared/PageHeader.tsx
+  4:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/shared/SearchInput.tsx
+  6:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 48 problems (11 errors, 37 warnings)
+

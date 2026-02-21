@@ -24,13 +24,12 @@ import dns.resolver
 from django.conf import settings
 from django.utils import timezone
 
-from apps.urls import repository
-from apps.urls.models import ShortURL
-from apps.urls.utils import generate_unique_slug, get_qr_endpoint_url
+from apps.links import repository
+from apps.links.models import ShortURL
+from apps.links.utils import generate_unique_slug
 from shared.constants import (
     ALLOWED_URL_SCHEMES,
     BLOCKED_HOSTNAMES,
-    BLOCKED_IP_PATTERNS,
     MAX_URL_LENGTH,
     SLUG_MIN_LENGTH,
     SLUG_MAX_LENGTH,
@@ -58,7 +57,6 @@ from shared.exceptions import (
     URLInactiveError,
     URLNotYetActiveError,
     ClickLimitReachedError,
-    PrivateLinkError,
     WrongPasswordError,
     SingleUseLinkError,
     RateLimitError,
@@ -835,13 +833,6 @@ def _verify_url_password(plain: str, hashed: str) -> bool:
         return False
 
 
-def _generate_and_save_qr(url_id, short_url_string: str) -> None:
-    """Generate QR code and update DB — runs in background thread."""
-    try:
-        relative_path = generate_qr_code(str(url_id), short_url_string)
-        repository.set_qr_code_path(str(url_id), relative_path)
-    except Exception as e:
-        logger.error(f"QR code generation failed for url_id={url_id}: {e}")
 
 
 def _apply_redirect_rules(short_url: ShortURL, request) -> str | None:

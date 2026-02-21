@@ -5,8 +5,8 @@ URLs GraphQL Types
 import graphene
 from graphene_django import DjangoObjectType
 
-from apps.urls.models import ShortURL
-from apps.urls.utils import get_qr_endpoint_url
+from apps.links.models import ShortURL
+from apps.links.utils import get_qr_endpoint_url
 
 
 class ShortURLType(DjangoObjectType):

@@ -13,7 +13,7 @@ from django.conf.urls.static import static
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.urls.views import ShortURLRedirectView, VerifyURLPasswordView, QRCodeView
+from apps.links.views import ShortURLRedirectView, VerifyURLPasswordView, QRCodeView
 
 urlpatterns = [
     # Django Admin

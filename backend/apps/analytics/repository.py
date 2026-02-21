@@ -5,10 +5,8 @@ Keeps raw SQL/ORM logic out of the service layer.
 """
 
 import logging
-from datetime import date, datetime
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.db.models.functions import TruncDate, TruncHour
-from django.utils import timezone
 
 from apps.analytics.models import Click
 from shared.constants import MAX_PAGE_SIZE, UNKNOWN_VALUE
@@ -239,21 +237,6 @@ def get_click_history(
     clicks = qs[offset:offset + limit]
 
     return {"clicks": clicks, "total": total, "page": page, "limit": limit}
-
-
-# ─────────────────────────────────────────────
-# Platform-wide Stats (Admin)
-# ─────────────────────────────────────────────
-
-def get_platform_total_clicks() -> int:
-    """Total clicks across all URLs on the platform."""
-    return Click.objects.count()
-
-
-def get_platform_clicks_today() -> int:
-    """Total clicks today across all URLs."""
-    today = timezone.now().date()
-    return Click.objects.filter(created_at__date=today).count()
 
 
 # ─────────────────────────────────────────────

@@ -29,15 +29,14 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.utils import timezone
 from django.views import View
 
-from apps.urls import services as url_services
-from apps.urls import repository as url_repository
+from apps.links import services as url_services
+from apps.links import repository as url_repository
 from shared.exceptions import (
     URLNotFoundError,
     URLInactiveError,
     URLExpiredError,
     URLNotYetActiveError,
     ClickLimitReachedError,
-    PrivateLinkError,
     WrongPasswordError,
     SingleUseLinkError,
     AppException,
@@ -305,7 +304,7 @@ class QRCodeView(View):
     """
 
     def get(self, request, slug: str, *args, **kwargs):
-        from apps.urls.utils import generate_qr_code
+        from apps.links.utils import generate_qr_code
 
         try:
             short_url_obj = url_repository.get_by_slug(slug)

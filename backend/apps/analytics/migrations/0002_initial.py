@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='click',
             name='short_url',
-            field=models.ForeignKey(help_text='The short URL that was clicked.', on_delete=django.db.models.deletion.CASCADE, related_name='clicks', to='urls.shorturl'),
+            field=models.ForeignKey(help_text='The short URL that was clicked.', on_delete=django.db.models.deletion.CASCADE, related_name='clicks', to='links.shorturl'),
         ),
         migrations.AddIndex(
             model_name='click',

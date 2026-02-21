@@ -2,8 +2,8 @@
 
 A production-grade, full-stack URL shortening service built with **Django + GraphQL** (backend) and **Next.js** (frontend — coming next). Features custom aliases, rich analytics, privacy controls, QR codes, dynamic redirects, webhooks, admin controls, and AI-powered slug suggestions via **Google Gemini**.
 
-> **Backend status: ✅ Complete & Live on Neon PostgreSQL**  
-> **Frontend status: 🔜 Next**
+> **Backend status: ✅ Complete & Stable (Links App Refactored)**  
+> **Frontend status: � In Progress (Hooks Consolidated)**
 
 ---
 
@@ -24,7 +24,7 @@ cp .env.example .env
 # → Fill in DATABASE_URL (Neon), SECRET_KEY, JWT_SECRET_KEY
 
 # 4. Run migrations
-python manage.py makemigrations users urls analytics
+python manage.py makemigrations users links analytics
 python manage.py migrate
 
 # 5. Start development server
@@ -43,14 +43,14 @@ shorten_url/
 ├── backend/              # Django + Graphene-Django (GraphQL)
 │   ├── apps/
 │   │   ├── users/        # Auth — JWT register/login/refresh/logout
-│   │   ├── urls/         # Core — shorten, validate, redirect, QR
+│   │   ├── links/         # Core — shorten, validate, redirect, QR
 │   │   ├── analytics/    # Clicks — log, aggregate, geo, charts
 │   │   ├── admin_panel/  # Admin — stats, user/URL management
 │   │   └── ai_integration/ # Gemini — slug suggestions, metadata
 │   ├── shared/           # Constants, exceptions, JWT middleware, decorators
 │   ├── config/           # Django settings, URL routing, WSGI
 │   └── schema.py         # Root GraphQL schema (all apps merged)
-├── frontend/             # Next.js App Router (coming next)
+├── frontend/             # Next.js App Router (Tailwind + Shadcn/UI)
 └── README.md
 ```
 
@@ -455,7 +455,7 @@ backend/
 │   │       ├── queries.py ← me
 │   │       └── mutations.py ← Register, Login, RefreshToken, Logout
 │   │
-│   ├── urls/
+│   ├── links/
 │   │   ├── models.py      ← ShortURL (18 fields, 4 DB indexes)
 │   │   ├── repository.py  ← CRUD + atomic click counter + flag/unflag
 │   │   ├── services.py    ← 6-layer validation + create/resolve/update/delete

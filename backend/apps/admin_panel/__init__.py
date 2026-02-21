@@ -1,7 +1,7 @@
 """
 apps.admin_panel — Admin Operations
 
-No models — purely an orchestration layer over apps.users and apps.urls.
+No models — purely an orchestration layer over apps.users and apps.links.
 
 Services:
     from apps.admin_panel.services import (

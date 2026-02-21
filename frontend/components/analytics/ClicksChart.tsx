@@ -68,7 +68,6 @@ export function ClicksChart({
     }
 
     const hasData = data.length > 0 && data.some(d => d.count > 0);
-    const isSinglePoint = data.length === 1;
 
     const chartData = data.map((d) => ({
         date: new Date(d.date).toLocaleDateString("en-US", {

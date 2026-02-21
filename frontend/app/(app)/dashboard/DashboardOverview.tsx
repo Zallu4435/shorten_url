@@ -9,8 +9,6 @@ import {
     ArrowRight,
     Plus,
     Activity,
-    History,
-    Zap,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -22,15 +20,13 @@ import {
     Card,
     CardContent,
     CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { PageLoading } from "@/components/shared/PageLoading";
-import { formatNumber, timeAgo, truncateUrl, cn } from "@/lib/utils";
+import { formatNumber, timeAgo, cn } from "@/lib/utils";
 import type { UserAnalyticsOverview, ShortURL } from "@/types";
 
 export function DashboardOverview() {
@@ -153,7 +149,7 @@ export function DashboardOverview() {
                                             <Skeleton className="h-14 flex-1 rounded-2xl" />
                                         </div>
                                     ))
-                                    : (analytics?.topUrls ?? []).slice(0, 5).map((url: any) => (
+                                    : (analytics?.topUrls ?? []).slice(0, 5).map((url: { id: string; slug: string; title?: string; clickCount: number }) => (
                                         <div
                                             key={url.id}
                                             className="flex items-center justify-between gap-4 group p-1"
