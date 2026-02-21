@@ -49,6 +49,36 @@ export const LOGOUT_MUTATION = gql`
   }
 `;
 
+export const UPDATE_PROFILE_MUTATION = gql`
+  mutation UpdateProfile($email: String, $username: String) {
+    updateProfile(email: $email, username: $username) {
+      user {
+        id
+        email
+        username
+      }
+    }
+  }
+`;
+
+export const CHANGE_PASSWORD_MUTATION = gql`
+  mutation ChangePassword($oldPassword: String!, $newPassword: String!) {
+    changePassword(oldPassword: $oldPassword, newPassword: $newPassword) {
+      success
+      message
+    }
+  }
+`;
+
+export const DELETE_ACCOUNT_MUTATION = gql`
+  mutation DeleteAccount {
+    deleteAccount {
+      success
+      message
+    }
+  }
+`;
+
 // ─── URLs ─────────────────────────────────────────────────
 export const CREATE_SHORT_URL_MUTATION = gql`
   mutation CreateShortUrl(
@@ -64,6 +94,7 @@ export const CREATE_SHORT_URL_MUTATION = gql`
     $activatesAt: DateTime
     $webhookUrl: String
     $redirectRules: JSONString
+    $qrEnabled: Boolean
   ) {
     createShortUrl(
       originalUrl: $originalUrl
@@ -78,13 +109,15 @@ export const CREATE_SHORT_URL_MUTATION = gql`
       activatesAt: $activatesAt
       webhookUrl: $webhookUrl
       redirectRules: $redirectRules
+      qrEnabled: $qrEnabled
     ) {
       id
       slug
       shortUrl
       originalUrl
       title
-      qrCode
+      qrEnabled
+      qrCodeUrl
       createdAt
     }
   }
@@ -93,37 +126,50 @@ export const CREATE_SHORT_URL_MUTATION = gql`
 export const UPDATE_SHORT_URL_MUTATION = gql`
   mutation UpdateShortUrl(
     $id: UUID!
+    $originalUrl: String
+    $slug: String
     $title: String
     $description: String
     $isActive: Boolean
     $isPrivate: Boolean
     $password: String
-    $isSingleUse: Boolean
     $maxClicks: Int
     $expiresAt: DateTime
     $activatesAt: DateTime
     $webhookUrl: String
     $redirectRules: JSONString
+    $qrEnabled: Boolean
   ) {
     updateShortUrl(
       id: $id
+      originalUrl: $originalUrl
+      slug: $slug
       title: $title
       description: $description
       isActive: $isActive
       isPrivate: $isPrivate
       password: $password
-      isSingleUse: $isSingleUse
       maxClicks: $maxClicks
       expiresAt: $expiresAt
       activatesAt: $activatesAt
       webhookUrl: $webhookUrl
       redirectRules: $redirectRules
+      qrEnabled: $qrEnabled
     ) {
       id
       slug
       shortUrl
+      originalUrl
       title
       isActive
+      isPrivate
+      isSingleUse
+      maxClicks
+      expiresAt
+      activatesAt
+      webhookUrl
+      qrEnabled
+      qrCodeUrl
       updatedAt
     }
   }

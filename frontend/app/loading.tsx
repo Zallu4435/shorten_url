@@ -1,5 +1,5 @@
 import { PageLoading } from "@/components/shared/PageLoading";
 
 export default function Loading() {
-    return <PageLoading message="PREPARING EXTERNAL PROTOCOLS..." fullScreen />;
+    return <PageLoading message="BOOTING SYSTEM CORE..." fullScreen />;
 }

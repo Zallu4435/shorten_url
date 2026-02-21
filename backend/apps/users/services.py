@@ -18,6 +18,7 @@ from datetime import timedelta
 
 import jwt
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 
 from apps.users import repository
@@ -214,6 +215,79 @@ def logout_user(raw_refresh_token: str) -> bool:
     token_hash = _hash_token(raw_refresh_token)
     repository.revoke_refresh_token(token_hash)
     logger.info("User logged out — refresh token revoked.")
+    return True
+
+
+# ─────────────────────────────────────────────
+# Account Management
+# ─────────────────────────────────────────────
+
+def update_user_profile(user: CustomUser, email: str = None, username: str = None) -> CustomUser:
+    """
+    Update a user's profile information.
+    """
+    updates = {}
+
+    if email and email.lower().strip() != user.email:
+        _validate_email(email)
+        if repository.email_exists(email):
+            raise DuplicateEmailError()
+        updates["email"] = email.lower().strip()
+
+    if username and username.strip() != user.username:
+        _validate_username(username)
+        if repository.username_exists(username):
+            raise ConflictError(f"The username '{username}' is already taken.")
+        updates["username"] = username.strip()
+
+    if not updates:
+        return user
+
+    return repository.update_user(user.id, **updates)
+
+
+def change_password(user: CustomUser, old_password: str, new_password: str) -> bool:
+    """
+    Securely change a user's password.
+    Revokes ALL active sessions for security.
+    """
+    # 1. Verify old password
+    if not user.check_password(old_password):
+        raise AuthenticationError("Current password incorrect.")
+
+    # 2. Validate new password
+    _validate_password(new_password)
+
+    # 3. Update password (Django handles hashing)
+    user.set_password(new_password)
+    user.save()
+
+    # 4. Security: Revoke all refresh tokens (force relogin)
+    repository.revoke_all_user_tokens(user)
+
+    logger.info(f"Password changed for user: {user.email}")
+    return True
+
+
+def delete_user_account(user: CustomUser) -> bool:
+    """
+    Deactivate a user account (soft-delete).
+    Revokes all tokens and suspends all associated links atomically.
+    """
+    from apps.urls.models import ShortURL
+
+    with transaction.atomic():
+        # 1. Deactivate the user
+        repository.deactivate_user(user.id)
+
+        # 2. Revoke all tokens immediately
+        repository.revoke_all_user_tokens(user)
+
+        # 3. Explicitly deactivate all user links
+        # This provides a secondary layer of security alongside the dynamic check
+        ShortURL.objects.filter(user=user).update(is_active=False)
+
+    logger.info(f"Account and associated links deactivated for: {user.email}")
     return True
 
 

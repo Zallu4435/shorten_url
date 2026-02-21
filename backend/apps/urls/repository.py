@@ -37,6 +37,7 @@ def create_short_url(
     webhook_url: str = "",
     is_url_reachable: bool = None,
     url_status_code: int = None,
+    qr_enabled: bool = False,
 ) -> ShortURL:
     """Persist a new ShortURL to the database."""
     short_url = ShortURL.objects.create(
@@ -57,6 +58,7 @@ def create_short_url(
         is_url_reachable=is_url_reachable,
         url_status_code=url_status_code,
         last_checked_at=timezone.now() if is_url_reachable is not None else None,
+        qr_enabled=qr_enabled,
     )
     logger.info(f"Short URL created: /{slug} → {original_url[:60]}")
     return short_url
@@ -185,7 +187,7 @@ def update_short_url(url_id: str, **fields) -> ShortURL:
     Raises URLNotFoundError if not found.
     """
     # Exclude protected fields that shouldn't be updated directly
-    protected = {"id", "slug", "user", "created_at", "click_count"}
+    protected = {"id", "user", "created_at", "click_count"}
     safe_fields = {k: v for k, v in fields.items() if k not in protected}
 
     updated = ShortURL.objects.filter(id=url_id).update(**safe_fields)
@@ -209,9 +211,9 @@ def update_url_health(slug: str, is_reachable: bool, status_code: int) -> None:
     )
 
 
-def set_qr_code_path(url_id: str, path: str) -> None:
-    """Store the generated QR code file path."""
-    ShortURL.objects.filter(id=url_id).update(qr_code=path)
+def set_qr_enabled(url_id: str, enabled: bool) -> None:
+    """Update the qr_enabled flag for a short URL."""
+    ShortURL.objects.filter(id=url_id).update(qr_enabled=enabled)
 
 
 def flag_url(url_id: str, reason: str) -> ShortURL:

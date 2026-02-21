@@ -154,3 +154,8 @@ class UserAnalyticsOverviewType(graphene.ObjectType):
         "apps.urls.graphql.types.ShortURLType",
         description="Top 5 most-clicked short URLs."
     )
+    clicks_by_date = graphene.List(
+        graphene.NonNull(DateBreakdownType),
+        required=True,
+        description="Aggregated click counts per date across all user's URLs."
+    )

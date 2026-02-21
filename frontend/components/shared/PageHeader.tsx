@@ -29,7 +29,7 @@ export function PageHeader({
                     <Icon className="h-7 w-7 text-primary" />
                 </div>
                 <div className="space-y-1">
-                    <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-foreground leading-tight">
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-foreground leading-tight">
                         {title}
                     </h1>
                     <p className="text-sm md:text-base font-bold text-muted-foreground tracking-tight max-w-xl">

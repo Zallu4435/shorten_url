@@ -6,7 +6,7 @@ import graphene
 from graphene_django import DjangoObjectType
 
 from apps.urls.models import ShortURL
-from apps.urls.utils import get_qr_code_url
+from apps.urls.utils import get_qr_endpoint_url
 
 
 class ShortURLType(DjangoObjectType):
@@ -21,7 +21,7 @@ class ShortURLType(DjangoObjectType):
     is_scheduled = graphene.Boolean(description="True if the link is not yet active (before activates_at).")
     is_click_limit_reached = graphene.Boolean(description="True if the link has hit its click limit.")
     short_url = graphene.String(description="Full short URL (e.g. https://yourdomain.com/abc123).")
-    qr_code_url = graphene.String(description="Full URL to the QR code image.")
+    qr_code_url = graphene.String(description="URL of the on-the-fly QR code endpoint. Empty string if qr_enabled is False.")
 
     class Meta:
         model = ShortURL
@@ -43,7 +43,7 @@ class ShortURLType(DjangoObjectType):
             "activates_at",
             "redirect_rules",
             "webhook_url",
-            "qr_code",
+            "qr_enabled",
             "is_url_reachable",
             "url_status_code",
             "last_checked_at",
@@ -65,7 +65,9 @@ class ShortURLType(DjangoObjectType):
         return root.short_url
 
     def resolve_qr_code_url(root, info):
-        return get_qr_code_url(root.qr_code)
+        if not root.qr_enabled:
+            return ""
+        return get_qr_endpoint_url(root.slug)
 
 
 class ResolveSlugPayloadType(graphene.ObjectType):

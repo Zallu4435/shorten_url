@@ -42,6 +42,7 @@ export function RegisterForm() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     const form = useForm<RegisterValues>({
         resolver: zodResolver(registerSchema),
@@ -56,7 +57,10 @@ export function RegisterForm() {
         try {
             await authRegister(values.email, values.username, values.password);
             toast.success("Welcome aboard! Account created successfully 🎉");
-            router.replace("/dashboard");
+            setIsRedirecting(true);
+            setTimeout(() => {
+                router.replace("/dashboard");
+            }, 1000);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Could not create account. Please try again.";
             toast.error(message);
@@ -228,12 +232,12 @@ export function RegisterForm() {
                 <Button
                     type="submit"
                     className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-black text-sm tracking-tight shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-                    disabled={isSubmitting}
+                    disabled={form.formState.isSubmitting || isRedirecting}
                 >
-                    {isSubmitting ? (
+                    {form.formState.isSubmitting || isRedirecting ? (
                         <span className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            Creating your account...
+                            {isRedirecting ? "ELEVATING PRIVILEGES..." : "SYNCHRONIZING..."}
                         </span>
                     ) : (
                         <span className="flex items-center gap-2">

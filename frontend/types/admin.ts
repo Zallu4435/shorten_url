@@ -5,16 +5,11 @@ import type { ShortURL } from "./links";
 export interface PlatformStats {
     totalUsers: number;
     activeUsers: number;
-    adminUsers: number;
     newUsersToday: number;
-    newUsersThisWeek: number;
-    newUsersThisMonth: number;
     totalUrls: number;
     activeUrls: number;
     flaggedUrls: number;
     newUrlsToday: number;
-    newUrlsThisWeek: number;
-    newUrlsThisMonth: number;
     totalClicks: number;
     clicksToday: number;
     clicksThisWeek: number;

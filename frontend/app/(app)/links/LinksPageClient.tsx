@@ -9,7 +9,7 @@ import { MY_URLS_QUERY } from "@/lib/graphql/queries";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { LinkCard } from "@/components/links/LinkCard";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SearchInput } from "@/components/shared/SearchInput";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
@@ -59,6 +59,11 @@ export function LinksPageClient() {
     const handleSearch = (v: string) => { setSearch(v); setPage(1); };
     const handleFilter = (v: string) => { setFilter(v); setPage(1); };
     const handleSort = (v: string) => { setSort(v); setPage(1); };
+
+    // Bold initial load
+    if (loading && !data) {
+        return <PageLoading message="RETRIEVING NETWORK REGISTRY..." className="min-h-[600px]" />;
+    }
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-12 py-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -110,32 +115,35 @@ export function LinksPageClient() {
                 </p>
             )}
 
-            {/* Content */}
-            {/* Content area with focus preservation */}
-            <div className={cn("grid gap-4 transition-all duration-500", loading && !data ? "opacity-100" : (loading ? "opacity-50 pointer-events-none" : "opacity-100"))}>
-                {loading && !data ? (
-                    // Initial load skeletons
-                    Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="h-[100px] w-full rounded-2xl bg-muted animate-pulse border border-border" />
-                    ))
-                ) : urls.length === 0 ? (
-                    <EmptyTerminal
-                        title={debouncedSearch || filter !== "all" ? "No results found" : "No links discovered"}
-                        description={
-                            debouncedSearch || filter !== "all"
-                                ? "Try adjusting your search or filters."
-                                : "Start building your network by creating your first shortened URL."
-                        }
-                        icon={LinkIcon}
-                        actionLabel={!debouncedSearch && filter === "all" ? "Create Link" : undefined}
-                        actionHref="/links/new"
-                    />
-                ) : (
-                    urls.map((url: ShortURL) => (
-                        <LinkCard key={url.id} url={url} />
-                    ))
-                )}
-            </div>
+            {/* Link Table */}
+            <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
+                <div className={cn("divide-y divide-border transition-all duration-300", loading && data ? "opacity-50 pointer-events-none" : "opacity-100")}>
+                    {loading && !data ? (
+                        // Initial load skeletons
+                        Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="h-[80px] w-full bg-muted animate-pulse" />
+                        ))
+                    ) : urls.length === 0 ? (
+                        <div className="p-16">
+                            <EmptyTerminal
+                                title={debouncedSearch || filter !== "all" ? "No results found" : "No links discovered"}
+                                description={
+                                    debouncedSearch || filter !== "all"
+                                        ? "Try adjusting your search or filters."
+                                        : "Start building your network by creating your first shortened URL."
+                                }
+                                icon={LinkIcon}
+                                actionLabel={!debouncedSearch && filter === "all" ? "Create Link" : undefined}
+                                actionHref="/links/new"
+                            />
+                        </div>
+                    ) : (
+                        urls.map((url: ShortURL) => (
+                            <LinkCard key={url.id} url={url} />
+                        ))
+                    )}
+                </div>
+            </Card>
 
             {/* Pagination */}
             {totalPages > 1 && (

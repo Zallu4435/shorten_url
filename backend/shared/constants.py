@@ -138,9 +138,9 @@ UNKNOWN_VALUE = "unknown"
 # QR Code
 # ─────────────────────────────────────────────
 
-QR_CODE_BOX_SIZE = 10
-QR_CODE_BORDER = 4
-QR_CODE_ERROR_CORRECTION = "L"   # L=7%, M=15%, Q=25%, H=30% error correction
+QR_CODE_BOX_SIZE = 20        # 20px per module → ~600px output at version 1 (print-safe)
+QR_CODE_BORDER = 4           # 4-module quiet zone (ISO/IEC 18004 minimum)
+QR_CODE_ERROR_CORRECTION = "H"  # H=30% error correction — professional standard for printed QR codes
 
 # ─────────────────────────────────────────────
 # Pagination

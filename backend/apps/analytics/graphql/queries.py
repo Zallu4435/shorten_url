@@ -152,4 +152,8 @@ class AnalyticsQuery(graphene.ObjectType):
             clicks_this_week=overview["clicks_this_week"],
             clicks_this_month=overview["clicks_this_month"],
             top_urls=overview["top_urls"],
+            clicks_by_date=[
+                DateBreakdownType(date=d["date"], count=d["count"])
+                for d in overview["clicks_by_date"]
+            ],
         )

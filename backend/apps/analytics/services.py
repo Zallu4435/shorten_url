@@ -169,6 +169,13 @@ def get_user_analytics_overview(user, start_date: date = None, end_date: date = 
         .order_by("-click_count")[:5]
     )
 
+    # Aggregated clicks by date for all user URLs
+    clicks_by_date = repository.get_user_clicks_by_date(
+        user_url_ids=user_url_ids,
+        start_date=start_date,
+        end_date=end_date
+    )
+
     return {
         "total_urls": total_urls,
         "total_clicks": total_clicks,
@@ -177,6 +184,7 @@ def get_user_analytics_overview(user, start_date: date = None, end_date: date = 
         "clicks_this_week": clicks_this_week,
         "clicks_this_month": clicks_this_month,
         "top_urls": top_urls,
+        "clicks_by_date": clicks_by_date,
     }
 
 

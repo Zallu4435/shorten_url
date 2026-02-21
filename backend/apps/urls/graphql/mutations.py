@@ -81,9 +81,9 @@ class CreateShortUrl(graphene.Mutation):
         webhook_url = graphene.String(
             description="URL to POST to on every click (webhook).",
         )
-        generate_qr = graphene.Boolean(
-            default_value=True,
-            description="Whether to generate a QR code for this link.",
+        qr_enabled = graphene.Boolean(
+            default_value=False,
+            description="Set True to generate an on-the-fly QR code for this link via /qr/<slug>.",
         )
 
     Output = ShortURLType
@@ -106,7 +106,7 @@ class CreateShortUrl(graphene.Mutation):
         activates_at=None,
         redirect_rules=None,
         webhook_url: str = "",
-        generate_qr: bool = True,
+        qr_enabled: bool = False,
     ):
         user = info.context.user
 
@@ -133,7 +133,7 @@ class CreateShortUrl(graphene.Mutation):
             activates_at=activates_at,
             redirect_rules=redirect_rules or [],
             webhook_url=webhook_url or "",
-            generate_qr=generate_qr,
+            qr_enabled=qr_enabled,
         )
         return short_url
 
@@ -164,6 +164,8 @@ class UpdateShortUrl(graphene.Mutation):
 
     class Arguments:
         id = graphene.UUID(required=True, description="UUID of the short URL to update.")
+        original_url = graphene.String()
+        slug = graphene.String()
         title = graphene.String()
         description = graphene.String()
         is_active = graphene.Boolean()
@@ -174,6 +176,7 @@ class UpdateShortUrl(graphene.Mutation):
         activates_at = graphene.DateTime()
         redirect_rules = graphene.JSONString()
         webhook_url = graphene.String()
+        qr_enabled = graphene.Boolean(description="Enable or disable QR code for this link.")
 
     Output = ShortURLType
 

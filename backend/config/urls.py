@@ -13,7 +13,7 @@ from django.conf.urls.static import static
 from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.urls.views import ShortURLRedirectView, VerifyURLPasswordView
+from apps.urls.views import ShortURLRedirectView, VerifyURLPasswordView, QRCodeView
 
 urlpatterns = [
     # Django Admin
@@ -32,6 +32,14 @@ urlpatterns = [
         r"^(?P<slug>[a-zA-Z0-9_\-]{3,50})/verify$",
         csrf_exempt(VerifyURLPasswordView.as_view()),
         name="url-verify-password",
+    ),
+
+    # QR code on-the-fly endpoint — generates PNG in memory, no disk storage
+    # Must be declared BEFORE the slug catch-all to avoid conflict
+    re_path(
+        r"^qr/(?P<slug>[a-zA-Z0-9_\-]{3,50})$",
+        QRCodeView.as_view(),
+        name="url-qr-code",
     ),
 
     # ─── Short URL Redirect — must be LAST (catch-all for slugs) ───

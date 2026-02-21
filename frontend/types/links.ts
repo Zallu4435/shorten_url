@@ -20,7 +20,8 @@ export interface ShortURL {
     activatesAt?: string;
     redirectRules?: string;
     webhookUrl?: string;
-    qrCode?: string;
+    qrEnabled?: boolean;
+    qrCodeUrl?: string;
     isUrlReachable?: boolean;
     urlStatusCode?: number;
     lastCheckedAt?: string;

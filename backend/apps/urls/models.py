@@ -151,11 +151,9 @@ class ShortURL(models.Model):
         default="",
         help_text="When set, a POST request is fired to this URL on every click.",
     )
-    qr_code = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text="File path to the generated QR code image (relative to MEDIA_ROOT).",
+    qr_enabled = models.BooleanField(
+        default=False,
+        help_text="When True, a QR code can be generated on-the-fly for this link via /qr/<slug>.",
     )
 
     # ─── URL Health ────────────────────────────────────────

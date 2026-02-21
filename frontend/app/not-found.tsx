@@ -1,83 +1,12 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
-import { LucideIcon, AlertTriangle, Clock, Hash, Link2Off, Lock, ShieldAlert, Zap, ArrowLeft, Plus } from "lucide-react";
+import { Link2Off, ArrowLeft, Plus, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
-import { PasswordPromptClient } from "./PasswordPromptClient";
 
-const ERROR_CONFIG: Record<
-    string,
-    { icon: LucideIcon; label: string; title: string; description: string; color: "primary" | "amber" | "violet" | "emerald" | "red" }
-> = {
-    "not-found": {
-        icon: Link2Off,
-        label: "Node Absent",
-        title: "Link not found",
-        description: "This short link doesn't exist or may have been removed from our active index.",
-        color: "primary",
-    },
-    expired: {
-        icon: Clock,
-        label: "Temporal Expiry",
-        title: "Link expired",
-        description: "This link has passed its designated expiry date and is no longer serving traffic.",
-        color: "amber",
-    },
-    inactive: {
-        icon: ShieldAlert,
-        label: "Node Offline",
-        title: "Link inactive",
-        description: "This link has been manually deactivated by its owner for security or maintenance.",
-        color: "primary",
-    },
-    "not-yet-active": {
-        icon: Zap,
-        label: "Pending Hydration",
-        title: "Not yet active",
-        description: "This link is scheduled for future activation. Please re-attempt connection later.",
-        color: "violet",
-    },
-    "limit-reached": {
-        icon: Hash,
-        label: "Capacity Reached",
-        title: "Click limit reached",
-        description: "This node reached its maximum throughput number and has automatically throttled.",
-        color: "amber",
-    },
-    used: {
-        icon: Lock,
-        label: "Single Usage",
-        title: "Link already used",
-        description: "This was a ghost link (single-use) and has already been permanently consumed.",
-        color: "primary",
-    },
-    error: {
-        icon: AlertTriangle,
-        label: "System Fault",
-        title: "Something went wrong",
-        description: "An unexpected protocol error occurred while attempting to resolve this link.",
-        color: "red",
-    },
-};
-
-export default function LinkStatusPage({
-    params,
-}: {
-    params: Promise<{ type: string }>;
-}) {
-    const { type } = use(params);
-
-    // Handle protected links with the special interactive component
-    if (type === "protected") {
-        return <PasswordPromptClient />;
-    }
-
-    const config = ERROR_CONFIG[type] ?? ERROR_CONFIG["error"];
-    const Icon = config.icon;
-
+export default function NotFound() {
     return (
         <div className="relative flex min-h-screen flex-col items-center justify-center bg-background/50 backdrop-blur-3xl p-6 text-center overflow-hidden">
             {/* Ambient Background Glow */}
@@ -89,18 +18,18 @@ export default function LinkStatusPage({
                         {/* Status Identifier */}
                         <div className="flex flex-col items-center gap-6 mb-8 w-full">
                             <TechnicalIndicator
-                                label={config.label}
-                                icon={Icon}
-                                color={config.color}
+                                label="404 Protocol"
+                                icon={Link2Off}
+                                color="primary"
                                 className="mb-0"
                             />
 
                             <div className="space-y-3">
                                 <h1 className="text-3xl font-black tracking-tighter text-foreground leading-tight">
-                                    {config.title}
+                                    Node Not Found
                                 </h1>
                                 <p className="text-sm font-bold text-muted-foreground/60 tracking-tight max-w-[280px] mx-auto leading-relaxed">
-                                    {config.description}
+                                    The requested neural path does not exist or has been permanently de-indexed from the core.
                                 </p>
                             </div>
                         </div>
@@ -113,7 +42,7 @@ export default function LinkStatusPage({
                             >
                                 <Link href="/" className="flex items-center gap-3">
                                     <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                                    Return to Home
+                                    Return to Control Center
                                 </Link>
                             </Button>
 
@@ -124,7 +53,7 @@ export default function LinkStatusPage({
                             >
                                 <Link href="/links/new" className="flex items-center gap-3">
                                     <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
-                                    Generate New Link
+                                    Generate New Path
                                 </Link>
                             </Button>
                         </div>

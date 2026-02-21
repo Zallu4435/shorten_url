@@ -166,6 +166,14 @@ class BlockedURLError(ValidationError):
         super().__init__(message)
 
 
+class CircularURLError(ValidationError):
+    """Raised when the user tries to shorten a URL that already belongs to this service."""
+    code = "CIRCULAR_URL"
+
+    def __init__(self, message: str = "You cannot shorten a link that already belongs to this service."):
+        super().__init__(message)
+
+
 class InvalidSlugError(ValidationError):
     """Raised when a custom alias violates slug rules."""
     code = "INVALID_SLUG"

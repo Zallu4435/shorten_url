@@ -46,6 +46,10 @@ export function DashboardOverview() {
     const recentUrls = urlsData?.myUrls?.urls ?? [];
     const hasUrls = recentUrls.length > 0;
 
+    // Bold initial load to prevent "flashy" fragmented skeletons
+    if (analyticsLoading && urlsLoading && !analyticsData && !urlsData) {
+        return <PageLoading message="SYNCHRONIZING CORE METRICS..." className="min-h-[600px]" />;
+    }
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-12 py-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -111,17 +115,17 @@ export function DashboardOverview() {
                         {/* Traffic Dynamics */}
                         <div className="lg:col-span-2">
                             <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden h-full">
-                                <CardHeader className="p-10 pb-2">
+                                <CardHeader className="p-8 pb-4">
                                     <TechnicalIndicator label="Traffic Growth" icon={Activity} />
-                                    <h2 className="text-3xl font-black tracking-tighter text-foreground">Click Activity</h2>
+                                    <h2 className="text-xl font-black tracking-tight text-foreground">Click Activity</h2>
                                 </CardHeader>
-                                <CardContent className="p-10 pt-6">
+                                <CardContent className="p-8 pt-4">
                                     {analyticsLoading ? (
                                         <Skeleton className="h-[300px] w-full rounded-3xl" />
                                     ) : (
                                         <ClicksChart
-                                            data={[]}
-                                            title=""
+                                            data={analytics?.clicksByDate ?? []}
+                                            title="Platform Volume"
                                         />
                                     )}
                                 </CardContent>
@@ -130,10 +134,10 @@ export function DashboardOverview() {
 
                         {/* Performance Leaders */}
                         <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden h-full">
-                            <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between">
-                                <div className="space-y-1">
+                            <CardHeader className="p-8 pb-6 flex flex-row items-center justify-between">
+                                <div className="space-y-0.5">
                                     <TechnicalIndicator label="Performance" icon={TrendingUp} color="violet" className="mb-0" />
-                                    <h2 className="text-2xl font-black tracking-tighter text-foreground">Top Links</h2>
+                                    <h2 className="text-lg font-black tracking-tight text-foreground">Top Links</h2>
                                 </div>
                                 <Link
                                     href="/links"
@@ -142,7 +146,7 @@ export function DashboardOverview() {
                                     <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                                 </Link>
                             </CardHeader>
-                            <CardContent className="px-10 pb-10 space-y-6">
+                            <CardContent className="px-8 pb-8 space-y-4">
                                 {analyticsLoading
                                     ? Array.from({ length: 4 }).map((_, i) => (
                                         <div key={i} className="flex items-center gap-4">
@@ -181,10 +185,10 @@ export function DashboardOverview() {
 
                     {/* Entry Log */}
                     <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
-                        <CardHeader className="p-10 flex flex-row items-center justify-between border-b border-border">
-                            <div className="space-y-1">
+                        <CardHeader className="p-8 flex flex-row items-center justify-between border-b border-border">
+                            <div className="space-y-0.5">
                                 <TechnicalIndicator label="Live Stream" icon={Activity} color="amber" className="mb-0" />
-                                <h2 className="text-3xl font-black tracking-tighter text-foreground">Recent Activity</h2>
+                                <h2 className="text-xl font-black tracking-tight text-foreground">Recent Activity</h2>
                             </div>
                             <Button asChild variant="outline" className="rounded-2xl border-border px-6 font-black uppercase tracking-widest text-xs h-12 hover:bg-muted transition-all bg-background shadow-sm hover:border-primary/50">
                                 <Link href="/links">

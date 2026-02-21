@@ -1,5 +1,5 @@
 import { PageLoading } from "@/components/shared/PageLoading";
 
 export default function Loading() {
-    return <PageLoading message="Resolving Dynamic Link..." />;
+    return <PageLoading message="RESOLVING DYNAMIC LINK..." fullScreen />;
 }

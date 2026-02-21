@@ -282,3 +282,48 @@ class VerifyURLPasswordView(View):
         except Exception as e:
             logger.error(f"Error in password verify for /{slug}: {e}", exc_info=True)
             return JsonResponse({"success": False, "error": "An error occurred."}, status=500)
+
+
+# ─────────────────────────────────────────────────────────────────
+# QR Code Image Endpoint (On-the-Fly Generation)
+# ─────────────────────────────────────────────────────────────────
+
+class QRCodeView(View):
+    """
+    GET /qr/<slug>
+
+    Generates and streams a QR code PNG image for the given short URL on demand.
+    No files are written to disk — the image is produced in memory every request.
+
+    The QR code is deterministic: the same slug always produces the same image.
+    This URL is safe to share, embed in HTML, and use as a download source.
+
+    Responses:
+        200 image/png  — Success: streams the QR code PNG.
+        404 text/plain — Slug does not exist.
+        403 text/plain — QR code was not enabled for this link.
+    """
+
+    def get(self, request, slug: str, *args, **kwargs):
+        from apps.urls.utils import generate_qr_code
+
+        try:
+            short_url_obj = url_repository.get_by_slug(slug)
+        except URLNotFoundError:
+            return HttpResponse("Short URL not found.", status=404, content_type="text/plain")
+
+        if not short_url_obj.qr_enabled:
+            return HttpResponse(
+                "QR code was not enabled for this link.",
+                status=403,
+                content_type="text/plain",
+            )
+
+        png_bytes = generate_qr_code(short_url_obj.short_url)
+
+        response = HttpResponse(png_bytes, content_type="image/png")
+        # Cache for 24h — same slug always produces the same image
+        response["Cache-Control"] = "public, max-age=86400, immutable"
+        response["Content-Disposition"] = f'inline; filename="qr-{slug}.png"'
+        logger.info(f"QR code served on-the-fly for /{slug}")
+        return response

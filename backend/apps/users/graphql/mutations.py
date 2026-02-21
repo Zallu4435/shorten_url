@@ -160,6 +160,96 @@ class Logout(graphene.Mutation):
 
 
 # ─────────────────────────────────────────────
+# Update Profile
+# ─────────────────────────────────────────────
+
+class UpdateProfile(graphene.Mutation):
+    """
+    Update the authenticated user's email or username.
+    """
+
+    class Arguments:
+        email = graphene.String(description="New email address.")
+        username = graphene.String(description="New display name.")
+
+    user = graphene.Field("apps.users.graphql.types.UserType")
+
+    @classmethod
+    def mutate(cls, root, info, email: str = None, username: str = None):
+        user = info.context.user
+        if not user or not user.is_authenticated:
+            from shared.exceptions import AuthenticationError
+            raise AuthenticationError()
+
+        updated_user = services.update_user_profile(
+            user=user,
+            email=email,
+            username=username
+        )
+        return UpdateProfile(user=updated_user)
+
+
+# ─────────────────────────────────────────────
+# Change Password
+# ─────────────────────────────────────────────
+
+class ChangePassword(graphene.Mutation):
+    """
+    Change the authenticated user's password.
+    """
+
+    class Arguments:
+        old_password = graphene.String(required=True)
+        new_password = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    @classmethod
+    def mutate(cls, root, info, old_password: str, new_password: str):
+        user = info.context.user
+        if not user or not user.is_authenticated:
+            from shared.exceptions import AuthenticationError
+            raise AuthenticationError()
+
+        services.change_password(
+            user=user,
+            old_password=old_password,
+            new_password=new_password
+        )
+        return ChangePassword(
+            success=True,
+            message="Password updated successfully. Please log in again."
+        )
+
+
+# ─────────────────────────────────────────────
+# Delete Account
+# ─────────────────────────────────────────────
+
+class DeleteAccount(graphene.Mutation):
+    """
+    Permanently deactivate the authenticated user's account.
+    """
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    @classmethod
+    def mutate(cls, root, info):
+        user = info.context.user
+        if not user or not user.is_authenticated:
+            from shared.exceptions import AuthenticationError
+            raise AuthenticationError()
+
+        services.delete_user_account(user)
+        return DeleteAccount(
+            success=True, 
+            message="Your account has been deactivated."
+        )
+
+
+# ─────────────────────────────────────────────
 # Mutation Root
 # ─────────────────────────────────────────────
 
@@ -168,3 +258,8 @@ class UserMutation(graphene.ObjectType):
     login = Login.Field(description="Log in with email and password.")
     refresh_token = RefreshToken.Field(description="Refresh your JWT access token.")
     logout = Logout.Field(description="Log out and revoke your refresh token.")
+    
+    # Account Management
+    update_profile = UpdateProfile.Field(description="Update profile information.")
+    change_password = ChangePassword.Field(description="Security: Change password.")
+    delete_account = DeleteAccount.Field(description="Danger: Permanently deactivate account.")

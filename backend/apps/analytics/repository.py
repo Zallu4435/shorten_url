@@ -169,6 +169,21 @@ def get_clicks_by_date(url_id: str, start_date=None, end_date=None) -> list:
     )
 
 
+def get_user_clicks_by_date(user_url_ids, start_date=None, end_date=None) -> list:
+    """
+    Returns click counts grouped by date across all provided URL IDs.
+    Used for the main dashboard aggregate chart.
+    """
+    qs = Click.objects.filter(short_url_id__in=user_url_ids)
+    qs = _apply_date_filter(qs, start_date, end_date)
+    return list(
+        qs.annotate(date=TruncDate("created_at"))
+        .values("date")
+        .annotate(count=Count("id"))
+        .order_by("date")
+    )
+
+
 def get_clicks_by_hour(url_id: str, start_date=None, end_date=None) -> list:
     """
     Returns click counts grouped by hour of day (0–23).

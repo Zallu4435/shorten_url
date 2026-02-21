@@ -11,6 +11,8 @@ import {
     TrendingUp,
     Users,
     Settings,
+    QrCode,
+    Download,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -184,6 +186,72 @@ export function LinkDetailClient({ id }: { id: string }) {
                     />
                 </div>
             </div>
+
+            {/* QR Code Card */}
+            {url?.qrEnabled && url.qrCodeUrl ? (
+                <div className="rounded-[32px] border border-border bg-card shadow-sm overflow-hidden">
+                    <div className="p-7 border-b border-border flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <QrCode className="h-4 w-4 text-primary" />
+                            <h2 className="text-sm font-black uppercase tracking-widest">QR Code</h2>
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border">
+                            On-the-fly · No disk storage
+                        </span>
+                    </div>
+                    <div className="p-8 flex flex-col md:flex-row items-center gap-8">
+                        {/* QR Image */}
+                        <div className="p-4 bg-white rounded-2xl shadow-md border border-border shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={url.qrCodeUrl}
+                                alt={`QR code for /${url.slug}`}
+                                className="w-48 h-48 object-contain"
+                            />
+                        </div>
+                        {/* Info */}
+                        <div className="space-y-4 min-w-0 flex-1">
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Shareable Endpoint</p>
+                                <code className="text-sm font-mono break-all text-foreground">{url.qrCodeUrl}</code>
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Quality Spec</p>
+                                <p className="text-xs text-muted-foreground">~600px · Error Correction H (30%) · ISO/IEC 18004 compliant</p>
+                            </div>
+                            <a
+                                href={url.qrCodeUrl}
+                                download={`qr-${url.slug}.png`}
+                                className="inline-flex items-center gap-2 h-10 px-5 rounded-xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-opacity shadow-md shadow-primary/20"
+                            >
+                                <Download className="h-3.5 w-3.5" />
+                                Download PNG
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="rounded-[32px] border border-dashed border-border bg-muted/20 p-8 flex flex-col sm:flex-row items-center gap-6">
+                    <div className="h-14 w-14 rounded-2xl bg-muted border border-border flex items-center justify-center shrink-0">
+                        <QrCode className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
+                        <p className="text-sm font-black text-foreground">No QR Code</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                            Enable a scannable QR code for this link from the Settings page.
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        className="h-10 px-5 rounded-xl border-border font-bold text-xs uppercase tracking-widest hover:bg-muted hover:border-primary/30 transition-all shrink-0"
+                        asChild
+                    >
+                        <Link href={`/links/${url?.id}/edit`}>
+                            Enable QR →
+                        </Link>
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

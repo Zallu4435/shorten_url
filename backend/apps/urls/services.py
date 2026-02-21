@@ -26,7 +26,7 @@ from django.utils import timezone
 
 from apps.urls import repository
 from apps.urls.models import ShortURL
-from apps.urls.utils import generate_unique_slug, generate_qr_code, get_qr_code_url
+from apps.urls.utils import generate_unique_slug, get_qr_endpoint_url
 from shared.constants import (
     ALLOWED_URL_SCHEMES,
     BLOCKED_HOSTNAMES,
@@ -63,6 +63,7 @@ from shared.exceptions import (
     SingleUseLinkError,
     RateLimitError,
     WeakPasswordError,
+    CircularURLError,
 )
 
 logger = logging.getLogger(__name__)
@@ -119,24 +120,16 @@ def validate_url_format(url: str) -> str:
     if not hostname:
         raise InvalidURLFormatError("URL has an invalid or missing hostname.")
 
+    # ── Circular Redirect Protection ───────────────────────
+    # Block URLs that already point to this service to prevent recursion
+    base_url_hostname = urlparse(settings.BASE_URL).hostname
+    if base_url_hostname and hostname.lower() == base_url_hostname.lower():
+        raise CircularURLError()
+
     # Blocked hostname check (localhost, local, etc.)
     if hostname.lower() in BLOCKED_HOSTNAMES:
         raise BlockedURLError(
             f"URLs pointing to '{hostname}' are not allowed for security reasons."
-        )
-
-    # Private IP / SSRF protection
-    for pattern in BLOCKED_IP_PATTERNS:
-        if hostname.startswith(pattern):
-            raise BlockedURLError(
-                "URLs pointing to private or internal IP addresses are not allowed."
-            )
-
-    # Block raw IPs unless they're clearly public (basic heuristic)
-    ip_pattern = r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"
-    if re.match(ip_pattern, hostname):
-        raise BlockedURLError(
-            "URLs using raw IP addresses instead of domain names are not allowed."
         )
 
     # Normalize: lowercase scheme and hostname
@@ -159,30 +152,43 @@ def validate_url_format(url: str) -> str:
 def check_dns_resolution(url: str) -> None:
     """
     Verify the domain resolves via DNS.
-    Checks A records first, falls back to AAAA (IPv6).
+    Uses a multi-step approach:
+      1. Try dnspython (A then AAAA) for granular control.
+      2. Fallback to socket.getaddrinfo (OS resolver) for maximum compatibility.
     Raises DNSResolutionError if domain cannot be resolved.
     """
     hostname = urlparse(url).hostname
+    if not hostname:
+        raise DNSResolutionError("Invalid hostname")
 
-    # Try IPv4 (A record)
+    # Step 1: Try dnspython (A record)
     try:
-        dns.resolver.resolve(hostname, "A", lifetime=5)
-        logger.debug(f"DNS A record resolved for: {hostname}")
+        dns.resolver.resolve(hostname, "A", lifetime=3)
+        logger.debug(f"dnspython: A record resolved for {hostname}")
         return
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout):
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NoNameservers):
         pass
 
-    # Fallback: Try IPv6 (AAAA record)
+    # Step 2: Try dnspython (AAAA record)
     try:
-        dns.resolver.resolve(hostname, "AAAA", lifetime=5)
-        logger.debug(f"DNS AAAA record resolved for: {hostname}")
+        dns.resolver.resolve(hostname, "AAAA", lifetime=3)
+        logger.debug(f"dnspython: AAAA record resolved for {hostname}")
         return
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout):
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NoNameservers):
         pass
 
-    # Neither A nor AAAA record exists
-    logger.warning(f"DNS resolution failed for: {hostname}")
-    raise DNSResolutionError(hostname)
+    # Step 3: Fallback to socket.getaddrinfo (system resolver)
+    # This is often more resilient as it respects the OS configuration and cache.
+    try:
+        socket.getaddrinfo(hostname, None)
+        logger.debug(f"socket: resolved {hostname} via system resolver")
+        return
+    except socket.gaierror as e:
+        logger.warning(f"DNS resolution failed for {hostname}: {e}")
+        raise DNSResolutionError(hostname)
+    except Exception as e:
+        logger.error(f"Unexpected error resolving {hostname}: {e}")
+        raise DNSResolutionError(hostname)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -204,13 +210,17 @@ def check_url_reachability(url: str) -> int:
         "User-Agent": "URLShortener/1.0 (Link Validator; +https://github.com/your/project)",
     }
 
+    # Use a Session so we can cap max redirects correctly.
+    # requests.head/get don't accept max_redirects as a kwarg — it must be set on the Session.
+    session = requests.Session()
+    session.max_redirects = URL_MAX_REDIRECTS
+
     try:
-        response = requests.head(
+        response = session.head(
             url,
             headers=headers,
             allow_redirects=True,
             timeout=URL_REACHABILITY_TIMEOUT_SECONDS,
-            max_redirects=URL_MAX_REDIRECTS,
         )
 
         # Some servers don't support HEAD — fall back to GET
@@ -239,12 +249,11 @@ def check_url_reachability(url: str) -> int:
     except Exception:
         # Fallback: Try GET request
         try:
-            response = requests.get(
+            response = session.get(
                 url,
                 headers=headers,
                 allow_redirects=True,
                 timeout=URL_REACHABILITY_TIMEOUT_SECONDS,
-                max_redirects=URL_MAX_REDIRECTS,
                 stream=True,   # Don't download the full body
             )
             
@@ -278,9 +287,30 @@ def check_url_reachability(url: str) -> int:
 # LAYER 4: SAFETY CHECK (Google Safe Browsing)
 # ═══════════════════════════════════════════════════════════
 
+def _normalize_url_for_safety(url: str) -> str:
+    """
+    Simplify the URL for the Safe Browsing API.
+    - Remove fragments
+    - Ensure a path exists (e.g., http://google.com becomes http://google.com/)
+    """
+    try:
+        parsed = urlparse(url)
+        # Safe Browsing doesn't need fragments
+        path = parsed.path if parsed.path else "/"
+        return urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            path,
+            parsed.params,
+            parsed.query,
+            None  # Remove fragment
+        ))
+    except Exception:
+        return url
+
 def check_url_safety(url: str) -> tuple:
     """
-    Check the URL against Google Safe Browsing API.
+    Check the URL against Google Safe Browsing API v4.
     Returns (is_safe: bool, reason: str).
 
     If no API key is configured, skips the check and returns (True, "").
@@ -291,10 +321,13 @@ def check_url_safety(url: str) -> tuple:
         logger.debug("Google Safe Browsing API key not configured — skipping safety check.")
         return True, ""
 
+    # Normalize for API compatibility
+    canonical_url = _normalize_url_for_safety(url)
+
     payload = {
         "client": {
-            "clientId": "url-shortener",
-            "clientVersion": "1.0.0",
+            "clientId": "url-shortener-pro",
+            "clientVersion": "2.0.0",
         },
         "threatInfo": {
             "threatTypes": [
@@ -305,13 +338,18 @@ def check_url_safety(url: str) -> tuple:
             ],
             "platformTypes": ["ANY_PLATFORM"],
             "threatEntryTypes": ["URL"],
-            "threatEntries": [{"url": url}],
+            "threatEntries": [{"url": canonical_url}],
         },
     }
 
     try:
         api_url = f"{settings.GOOGLE_SAFE_BROWSING_URL}?key={api_key}"
         response = requests.post(api_url, json=payload, timeout=5)
+        
+        if response.status_code != 200:
+            logger.warning(f"Google Safe Browsing API returned status {response.status_code}: {response.text}")
+            return True, "" # Fail open
+
         data = response.json()
 
         if "matches" in data and data["matches"]:
@@ -323,7 +361,7 @@ def check_url_safety(url: str) -> tuple:
 
     except Exception as e:
         logger.warning(f"Google Safe Browsing check failed (allowing URL): {e}")
-        return True, ""  # Fail open — don't block on API errors
+        return True, ""  # Fail open
 
 
 # ═══════════════════════════════════════════════════════════
@@ -484,7 +522,7 @@ def create_short_url(
     activates_at: datetime = None,
     redirect_rules: list = None,
     webhook_url: str = "",
-    generate_qr: bool = True,
+    qr_enabled: bool = False,
 ) -> ShortURL:
     """
     Full URL shortening pipeline — runs all 6 validation layers then creates.
@@ -503,7 +541,7 @@ def create_short_url(
         activates_at   : Scheduled activation datetime
         redirect_rules : JSON rules for dynamic redirects
         webhook_url    : URL to POST to on every click
-        generate_qr    : Whether to generate a QR code
+        qr_enabled     : Whether the user wants a QR code for this link
 
     Returns:
         ShortURL instance
@@ -579,15 +617,8 @@ def create_short_url(
         webhook_url=webhook_url or "",
         is_url_reachable=is_reachable,
         url_status_code=status_code,
+        qr_enabled=qr_enabled,
     )
-
-    # ── Generate QR code (non-blocking) ───────────────────
-    if generate_qr:
-        threading.Thread(
-            target=_generate_and_save_qr,
-            args=(short_url.id, short_url.short_url),
-            daemon=True,
-        ).start()
 
     logger.info(f"Short URL created: /{slug} by user={getattr(user, 'email', 'anonymous')}")
     return short_url
@@ -624,6 +655,11 @@ def resolve_slug(slug: str, password: str = None, request=None) -> dict:
 
     # Step 2: Active?
     if not short_url.is_active or short_url.is_flagged:
+        raise URLInactiveError()
+
+    # Step 2.1: Owner Active? (Dynamic check for soft-deleted accounts)
+    if short_url.user and not short_url.user.is_active:
+        logger.warning(f"Redirect blocked for /{slug}: Owner account is inactive.")
         raise URLInactiveError()
 
     # Step 3: Scheduled? (not yet active)
@@ -683,6 +719,36 @@ def update_short_url(url_id: str, user, **fields) -> ShortURL:
     if short_url.user_id and str(short_url.user_id) != str(user.id) and not user.is_admin:
         raise PermissionDeniedError("You can only edit your own short links.")
 
+    # If original_url is being changed, run full validation
+    if "original_url" in fields:
+        original_url = fields["original_url"]
+        if original_url != short_url.original_url:
+            # Re-run Layer 1–4 validation
+            original_url = validate_url_format(original_url)
+            check_dns_resolution(original_url)
+            try:
+                check_url_reachability(original_url)
+            except URLNotReachableError:
+                raise
+            is_safe, threat_reason = check_url_safety(original_url)
+            if not is_safe:
+                raise URLFlaggedError(threat_reason)
+            
+            fields["original_url"] = original_url
+
+    # If slug is being changed, validate it
+    if "slug" in fields:
+        new_slug = fields["slug"]
+        if new_slug != short_url.slug:
+            # Validate format
+            new_slug = validate_custom_slug_format(new_slug)
+            
+            # Uniqueness check (excluding this URL)
+            if repository.slug_exists(new_slug):
+                raise DuplicateSlugError(new_slug)
+            
+            fields["slug"] = new_slug
+
     # If password is being changed, rehash
     if "password" in fields:
         new_password = fields.pop("password")
@@ -703,6 +769,37 @@ def update_short_url(url_id: str, user, **fields) -> ShortURL:
         )
 
     return repository.update_short_url(url_id, **fields)
+
+
+def validate_custom_slug_format(slug: str) -> str:
+    """
+    Validate and normalize a user-provided custom alias (format only).
+    """
+    if not slug or not slug.strip():
+        raise InvalidSlugError("Custom alias cannot be empty.")
+
+    slug = slug.strip().lower()
+
+    if len(slug) < SLUG_MIN_LENGTH:
+        raise InvalidSlugError(
+            f"Alias is too short. Minimum {SLUG_MIN_LENGTH} characters required."
+        )
+    if len(slug) > SLUG_MAX_LENGTH:
+        raise InvalidSlugError(
+            f"Alias is too long. Maximum {SLUG_MAX_LENGTH} characters allowed."
+        )
+
+    pattern = r"^[a-z0-9][a-z0-9_\-]*[a-z0-9]$|^[a-z0-9]{1}$"
+    if not re.match(pattern, slug):
+        raise InvalidSlugError(
+            "Alias can only contain lowercase letters, digits, hyphens (-), and underscores (_). "
+            "It must start and end with a letter or digit."
+        )
+
+    if slug in RESERVED_SLUGS:
+        raise ReservedSlugError(slug)
+
+    return slug
 
 
 def delete_short_url(url_id: str, user) -> bool:

@@ -77,4 +77,5 @@ export interface UserAnalyticsOverview {
     clicksThisWeek: number;
     clicksThisMonth: number;
     topUrls: TopURL[];
+    clicksByDate: DateBreakdown[];
 }

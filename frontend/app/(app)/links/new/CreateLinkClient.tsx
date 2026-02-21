@@ -72,6 +72,7 @@ export function CreateLinkClient() {
             description: "",
             isPrivate: false,
             isSingleUse: false,
+            qrEnabled: false,
             password: "",
             maxClicks: "",
             expiresAt: "",
@@ -80,15 +81,20 @@ export function CreateLinkClient() {
     });
     const isProcessing = useRef(false);
 
+    const [isRedirecting, setIsRedirecting] = useState(false);
+
     const [createUrl, { loading: creating }] = useMutation(
         CREATE_SHORT_URL_MUTATION,
         {
             refetchQueries: [MY_URLS_QUERY],
             onCompleted: (data) => {
+                setIsRedirecting(true);
                 toast.success("Link created successfully", {
                     description: `Short link /${data.createShortUrl.slug} is now live.`,
                 });
-                router.push(`/links/${data.createShortUrl.id}`);
+                setTimeout(() => {
+                    router.push(`/links/${data.createShortUrl.id}`);
+                }, 1000);
             },
             onError: (err) => toast.error(err.message),
         }
@@ -202,6 +208,7 @@ export function CreateLinkClient() {
                 isPrivate: values.isPrivate,
                 password: values.password || undefined,
                 isSingleUse: values.isSingleUse,
+                qrEnabled: values.qrEnabled,
                 maxClicks: isNaN(clicks) ? undefined : clicks,
                 expiresAt: values.expiresAt || undefined,
                 webhookUrl: values.webhookUrl || undefined,
@@ -355,7 +362,7 @@ export function CreateLinkClient() {
                             <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
                                 <CardHeader className="p-8 pb-2">
                                     <TechnicalIndicator label="Slug" icon={Zap} color="amber" />
-                                    <h2 className="text-2xl font-black tracking-tighter text-foreground">Custom Path</h2>
+                                    <h2 className="text-xl font-black tracking-tighter text-foreground">Custom Path</h2>
                                 </CardHeader>
                                 <CardContent className="p-8 pt-6 space-y-8">
                                     <FormField
@@ -371,7 +378,7 @@ export function CreateLinkClient() {
                                                         <Input
                                                             {...field}
                                                             placeholder="unique-id"
-                                                            className="h-8 bg-transparent border-none focus-visible:ring-0 font-black text-2xl tracking-tighter p-0 placeholder:text-muted-foreground/20"
+                                                            className="h-8 bg-transparent border-none focus-visible:ring-0 font-black text-xl tracking-tighter p-0 placeholder:text-muted-foreground/20"
                                                         />
                                                     </FormControl>
                                                 </div>
@@ -483,6 +490,7 @@ export function CreateLinkClient() {
                                                                     className="h-12 bg-muted/20 border-border rounded-xl font-black shadow-inner px-4 tracking-[0.3em] text-center"
                                                                 />
                                                             </FormControl>
+                                                            <FormMessage className="text-[10px] font-black uppercase tracking-widest mt-2 text-center" />
                                                         </FormItem>
                                                     )}
                                                 />
@@ -496,6 +504,29 @@ export function CreateLinkClient() {
                                                 render={({ field }) => (
                                                     <FormItem className="flex items-center justify-between p-1">
                                                         <FormLabel className="text-[10px] font-black uppercase tracking-widest text-foreground">Single-Use Link</FormLabel>
+                                                        <FormControl>
+                                                            <Switch checked={field.value} onCheckedChange={field.onChange} className="scale-75" />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <Separator className="bg-border opacity-50" />
+
+                                            <FormField
+                                                control={form.control}
+                                                name="qrEnabled"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex items-center justify-between p-1">
+                                                        <div>
+                                                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-foreground flex items-center gap-1.5">
+                                                                <Scan className="h-3 w-3" />
+                                                                Generate QR Code
+                                                            </FormLabel>
+                                                            <FormDescription className="text-[9px] tracking-wider mt-0.5 ml-5">
+                                                                Enables <code className="font-mono">/qr/{form.watch("slug") || "<slug>"}</code>
+                                                            </FormDescription>
+                                                        </div>
                                                         <FormControl>
                                                             <Switch checked={field.value} onCheckedChange={field.onChange} className="scale-75" />
                                                         </FormControl>
@@ -550,12 +581,15 @@ export function CreateLinkClient() {
                             <div className="pt-4 flex flex-col items-center gap-6">
                                 <Button
                                     type="submit"
-                                    disabled={creating}
+                                    disabled={creating || isRedirecting}
                                     className="w-full h-20 rounded-[30px] bg-primary text-primary-foreground font-black uppercase tracking-[0.4em] text-sm shadow-[0_25px_50px_-12px_rgba(var(--primary),0.4)] hover:opacity-90 active:scale-[0.98] transition-all border border-primary/20 group overflow-hidden relative"
                                 >
                                     <span className="relative z-10 flex items-center gap-4">
-                                        {creating ? (
-                                            <Loader2 className="h-6 w-6 animate-spin" />
+                                        {creating || isRedirecting ? (
+                                            <>
+                                                <Loader2 className="h-6 w-6 animate-spin" />
+                                                {isRedirecting ? "Finalizing..." : "Creating..."}
+                                            </>
                                         ) : (
                                             <>
                                                 Create Link

@@ -59,10 +59,10 @@ export default function AnalyticsPage() {
 
             {/* Performance Hierarchy */}
             <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
-                <CardHeader className="p-10 pb-6 flex flex-row items-center justify-between border-b border-border">
-                    <div className="space-y-1">
+                <CardHeader className="p-8 pb-6 flex flex-row items-center justify-between border-b border-border">
+                    <div className="space-y-0.5">
                         <TechnicalIndicator label="Top Performing Links" icon={TrendingUp} className="mb-0" />
-                        <h2 className="text-3xl font-black tracking-tighter text-foreground">Top Performing Links</h2>
+                        <h2 className="text-xl font-black tracking-tight text-foreground">Top Performing Links</h2>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">

@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 export function LoginForm() {
     const { login } = useAuth();
     const router = useRouter();
+    const [isRedirecting, setIsRedirecting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const form = useForm<LoginValues>({
@@ -35,7 +36,10 @@ export function LoginForm() {
         try {
             await login(values.email, values.password);
             toast.success("Welcome back!");
-            router.replace("/dashboard");
+            setIsRedirecting(true);
+            setTimeout(() => {
+                router.replace("/dashboard");
+            }, 800);
         } catch (err) {
             const message = err instanceof Error ? err.message : "Invalid credentials";
             toast.error(message);
@@ -136,10 +140,13 @@ export function LoginForm() {
                 <Button
                     type="submit"
                     className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-black text-sm tracking-tight shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-                    disabled={isSubmitting}
+                    disabled={form.formState.isSubmitting || isRedirecting}
                 >
-                    {isSubmitting ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
+                    {form.formState.isSubmitting || isRedirecting ? (
+                        <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {isRedirecting ? "ELEVATING PRIVILEGES..." : "SYNCHRONIZING..."}
+                        </span>
                     ) : (
                         <span className="flex items-center gap-2">
                             Sign in to your account

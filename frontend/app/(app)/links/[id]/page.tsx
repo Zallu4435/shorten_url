@@ -3,10 +3,11 @@ import { LinkDetailClient } from "./LinkDetailClient";
 
 export const metadata: Metadata = { title: "Link Detail" };
 
-export default function LinkDetailPage({
+export default async function LinkDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
-    return <LinkDetailClient id={params.id} />;
+    const { id } = await params;
+    return <LinkDetailClient id={id} />;
 }

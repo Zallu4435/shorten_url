@@ -48,7 +48,7 @@ export const MY_URLS_QUERY = gql`
         isSingleUse
         expiresAt
         createdAt
-        qrCode
+        qrEnabled
       }
       total
     }
@@ -76,7 +76,8 @@ export const GET_URL_QUERY = gql`
       activatesAt
       redirectRules
       webhookUrl
-      qrCode
+      qrEnabled
+      qrCodeUrl
       isUrlReachable
       urlStatusCode
       lastCheckedAt
@@ -168,6 +169,10 @@ export const MY_ANALYTICS_QUERY = gql`
         title
         clickCount
       }
+      clicksByDate {
+        date
+        count
+      }
     }
   }
 `;
@@ -178,16 +183,11 @@ export const PLATFORM_STATS_QUERY = gql`
     platformStats {
       totalUsers
       activeUsers
-      adminUsers
       newUsersToday
-      newUsersThisWeek
-      newUsersThisMonth
       totalUrls
       activeUrls
       flaggedUrls
       newUrlsToday
-      newUrlsThisWeek
-      newUrlsThisMonth
       totalClicks
       clicksToday
       clicksThisWeek

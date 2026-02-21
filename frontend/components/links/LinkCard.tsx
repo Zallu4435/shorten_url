@@ -78,9 +78,19 @@ export function LinkCard({ url }: LinkCardProps) {
 
     return (
         <>
-            <div className="flex items-center gap-6 rounded-2xl border border-border bg-card p-5 group hover:border-primary/20 hover:shadow-sm transition-all duration-300">
+            <div className={cn(
+                "flex items-center gap-6 px-8 py-5 group transition-all duration-300 relative overflow-hidden",
+                url.isActive ? "hover:bg-muted/40" : "opacity-60 grayscale-[0.6] bg-muted/5 cursor-not-allowed"
+            )}>
+                {/* Deactivated Overlay / Status */}
+                {!url.isActive && (
+                    <div className="absolute top-0 right-0 p-2 opacity-30 select-none pointer-events-none">
+                        <span className="text-[8px] font-black uppercase tracking-[0.3em] font-mono">DEACTIVATED_NODE</span>
+                    </div>
+                )}
+
                 {/* Status Section */}
-                <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-4 shrink-0 relative z-10">
                     <Switch
                         checked={url.isActive}
                         onCheckedChange={handleToggleActive}
@@ -88,17 +98,21 @@ export function LinkCard({ url }: LinkCardProps) {
                         className="data-[state=checked]:bg-emerald-500"
                     />
                     <div className={cn(
-                        "h-2 w-2 rounded-full",
-                        url.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-muted-foreground/30"
+                        "h-2 w-2 rounded-full transition-all duration-500",
+                        url.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-muted-foreground/30 scale-75"
                     )} />
                 </div>
 
                 {/* Main Content */}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 relative z-10">
                     <div className="flex items-center gap-2 mb-1">
                         <Link
-                            href={`/links/${url.id}`}
-                            className="text-lg font-extrabold tracking-tight text-foreground hover:text-primary transition-colors"
+                            href={url.isActive ? `/links/${url.id}` : "#"}
+                            onClick={(e) => !url.isActive && e.preventDefault()}
+                            className={cn(
+                                "text-lg font-extrabold tracking-tight transition-colors",
+                                url.isActive ? "text-foreground hover:text-primary" : "text-muted-foreground cursor-not-allowed"
+                            )}
                         >
                             /{url.slug}
                         </Link>
@@ -123,7 +137,7 @@ export function LinkCard({ url }: LinkCardProps) {
                 </div>
 
                 {/* Quantitative Data */}
-                <div className="hidden md:flex flex-col items-end shrink-0 min-w-[80px]">
+                <div className="hidden md:flex flex-col items-end shrink-0 min-w-[80px] relative z-10">
                     <span className="text-xl font-extrabold tracking-tight text-foreground tabular-nums leading-none">
                         {formatNumber(url.clickCount)}
                     </span>
@@ -131,7 +145,7 @@ export function LinkCard({ url }: LinkCardProps) {
                 </div>
 
                 {/* Temporal Data */}
-                <div className="hidden lg:flex flex-col items-end shrink-0 min-w-[100px]">
+                <div className="hidden lg:flex flex-col items-end shrink-0 min-w-[100px] relative z-10">
                     <span className="text-xs font-bold text-muted-foreground leading-none">
                         {timeAgo(url.createdAt)}
                     </span>
@@ -139,13 +153,14 @@ export function LinkCard({ url }: LinkCardProps) {
                 </div>
 
                 {/* Command Bar */}
-                <div className="flex items-center gap-1 shrink-0 bg-muted/50 p-1 rounded-xl border border-border mt-1 md:mt-0">
+                <div className="flex items-center gap-1 shrink-0 bg-muted/50 p-1 rounded-xl border border-border mt-1 md:mt-0 relative z-10">
                     <Button
                         variant="outline"
                         size="icon"
                         className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all border-border hover:border-primary/30"
                         onClick={handleCopy}
                         title="Copy to buffer"
+                        disabled={!url.isActive}
                     >
                         {copied ? (
                             <Check className="h-4 w-4 text-emerald-500" />
@@ -154,8 +169,8 @@ export function LinkCard({ url }: LinkCardProps) {
                         )}
                     </Button>
 
-                    <Button variant="outline" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all border-border hover:border-primary/30" asChild>
-                        <Link href={`/links/${url.id}`} title="Insights">
+                    <Button variant="outline" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-all border-border hover:border-primary/30" asChild disabled={!url.isActive}>
+                        <Link href={url.isActive ? `/links/${url.id}` : "#"} onClick={(e) => !url.isActive && e.preventDefault()} title="Insights">
                             <BarChart className="h-4 w-4" />
                         </Link>
                     </Button>
@@ -171,11 +186,24 @@ export function LinkCard({ url }: LinkCardProps) {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-border shadow-2xl">
-                            <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
-                                <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
-                                    <ExternalLink className="mr-3 h-4 w-4 text-primary" />
-                                    Launch Endpoint
-                                </a>
+                            <DropdownMenuItem
+                                asChild={url.isActive}
+                                className={cn(
+                                    "rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm",
+                                    !url.isActive && "opacity-50 cursor-not-allowed grayscale pointer-events-none"
+                                )}
+                            >
+                                {url.isActive ? (
+                                    <a href={url.shortUrl} target="_blank" rel="noopener noreferrer" className="flex items-center w-full">
+                                        <ExternalLink className="mr-3 h-4 w-4 text-primary" />
+                                        Launch Endpoint
+                                    </a>
+                                ) : (
+                                    <div className="flex items-center w-full">
+                                        <ExternalLink className="mr-3 h-4 w-4 text-primary" />
+                                        Launch Endpoint
+                                    </div>
+                                )}
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
                                 <Link href={`/links/${url.id}`} className="flex items-center w-full">
@@ -183,10 +211,25 @@ export function LinkCard({ url }: LinkCardProps) {
                                     Reconfigure
                                 </Link>
                             </DropdownMenuItem>
-                            {url.qrCode && (
-                                <DropdownMenuItem className="rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm">
-                                    <Scan className="mr-3 h-4 w-4 text-primary" />
-                                    Terminal QR
+                            {url.qrEnabled && (
+                                <DropdownMenuItem
+                                    asChild={url.isActive}
+                                    className={cn(
+                                        "rounded-xl px-3 py-2.5 cursor-pointer focus:bg-muted font-bold text-sm",
+                                        !url.isActive && "opacity-50 cursor-not-allowed grayscale pointer-events-none"
+                                    )}
+                                >
+                                    {url.isActive ? (
+                                        <a href={`/qr/${url.slug}`} download={`qr-${url.slug}.png`} className="flex items-center w-full">
+                                            <Scan className="mr-3 h-4 w-4 text-primary" />
+                                            Download QR Code
+                                        </a>
+                                    ) : (
+                                        <div className="flex items-center w-full">
+                                            <Scan className="mr-3 h-4 w-4 text-primary" />
+                                            Download QR Code
+                                        </div>
+                                    )}
                                 </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator className="my-1.5 mx-1" />
