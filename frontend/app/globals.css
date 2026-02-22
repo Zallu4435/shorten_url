@@ -216,3 +216,12 @@
     @apply relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-primary after:transition-all after:duration-200 hover:after:w-full;
   }
 }
+
+/* ─────────────────────────────────────────────────────────
+   Loading bar animation — used by card-scoped refetch indicator
+   ───────────────────────────────────────────────────────── */
+@keyframes slide {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}

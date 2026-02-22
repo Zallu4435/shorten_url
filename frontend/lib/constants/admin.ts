@@ -1,5 +1,5 @@
 // ─── Pagination ───────────────────────────────────────────────────────
-export const ADMIN_PAGE_SIZE = 20;
+export const ADMIN_PAGE_SIZE = 10;
 
 // ─── Admin Users: filter options ──────────────────────────────────────
 export const USER_ROLE_OPTIONS = [

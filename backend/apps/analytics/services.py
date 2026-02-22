@@ -20,6 +20,9 @@ from shared.exceptions import URLNotFoundError, PermissionDeniedError
 
 logger = logging.getLogger(__name__)
 
+# Ensures the GeoIP2 config warning is only logged once per process
+_geoip_warned = False
+
 
 # ═══════════════════════════════════════════════════════════
 # CLICK EVENT LOGGING
@@ -285,7 +288,14 @@ def _get_geo_info(ip_address: str) -> dict:
 
     db_path = getattr(settings, "GEOIP2_DATABASE_PATH", "")
     if not db_path:
-        logger.debug("GEOIP2_DATABASE_PATH not configured — skipping geo lookup.")
+        global _geoip_warned
+        if not _geoip_warned:
+            logger.warning(
+                "GEOIP2_DATABASE_PATH is not configured — country/city analytics will be empty. "
+                "Download GeoLite2-City.mmdb from https://dev.maxmind.com/geoip/geolite2-free-geolocation-data "
+                "and set GEOIP2_DATABASE_PATH in your .env file."
+            )
+            _geoip_warned = True
         return _unknown_geo()
 
     try:

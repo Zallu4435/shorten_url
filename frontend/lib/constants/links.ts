@@ -1,5 +1,5 @@
 // ─── Pagination ───────────────────────────────────────────────────────
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 10;
 
 // ─── Filter dropdown options (Links page) ─────────────────────────────
 export const LINK_FILTER_OPTIONS = [

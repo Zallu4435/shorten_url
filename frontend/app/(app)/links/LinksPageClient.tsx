@@ -15,6 +15,7 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { FilterSelect } from "@/components/shared/FilterSelect";
 import { PageLoading } from "@/components/shared/PageLoading";
+import { Pagination } from "@/components/shared/Pagination";
 import { PAGE_SIZE, LINK_FILTER_OPTIONS, LINK_SORT_OPTIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { ShortURL } from "@/types";
@@ -48,20 +49,29 @@ export function LinksPageClient() {
         ...filterToVars(filter),
     }), [page, debouncedSearch, sort, filter]);
 
-    const { data, loading } = useQuery<{
+    const { data, previousData, loading } = useQuery<{
         myUrls: { urls: ShortURL[]; total: number };
     }>(MY_URLS_QUERY, { variables });
 
-    const urls = data?.myUrls?.urls ?? [];
-    const total = data?.myUrls?.total ?? 0;
+    // previousData keeps old rows visible while new data loads — no full-page flicker
+    const displayData = data ?? previousData;
+    const urls = displayData?.myUrls?.urls ?? [];
+    const total = displayData?.myUrls?.total ?? 0;
+    const isFirstLoad = loading && !previousData && !data;
+    const isRefetching = loading && !!displayData;
+
     const totalPages = Math.ceil(total / PAGE_SIZE);
 
     const handleSearch = (v: string) => { setSearch(v); setPage(1); };
     const handleFilter = (v: string) => { setFilter(v); setPage(1); };
     const handleSort = (v: string) => { setSort(v); setPage(1); };
+    const handlePageChange = (p: number) => {
+        setPage(p);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
-    // Bold initial load
-    if (loading && !data) {
+    // ── Full-page spinner only on the very first load (no data at all yet) ──
+    if (isFirstLoad) {
         return <PageLoading message="RETRIEVING NETWORK REGISTRY..." className="min-h-[600px]" />;
     }
 
@@ -117,13 +127,14 @@ export function LinksPageClient() {
 
             {/* Link Table */}
             <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden">
-                <div className={cn("divide-y divide-border transition-all duration-300", loading && data ? "opacity-50 pointer-events-none" : "opacity-100")}>
-                    {loading && !data ? (
-                        // Initial load skeletons
-                        Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-[80px] w-full bg-muted animate-pulse" />
-                        ))
-                    ) : urls.length === 0 ? (
+                {/* Thin loading bar at top of card — only during refetch, not initial load */}
+                {isRefetching && (
+                    <div className="h-0.5 w-full bg-border overflow-hidden">
+                        <div className="h-full bg-primary animate-[loading-bar_1s_ease-in-out_infinite]" style={{ animation: "slide 1.2s ease-in-out infinite" }} />
+                    </div>
+                )}
+                <div className="divide-y divide-border">
+                    {urls.length === 0 && !isRefetching ? (
                         <div className="p-16">
                             <EmptyTerminal
                                 title={debouncedSearch || filter !== "all" ? "No results found" : "No links discovered"}
@@ -146,33 +157,12 @@ export function LinksPageClient() {
             </Card>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-6 border-t border-border">
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                        Page {page} / {totalPages} &mdash; {total} total
-                    </p>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="rounded-lg font-bold hover:bg-muted border-border"
-                            disabled={page <= 1}
-                            onClick={() => { setPage((p) => p - 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                        >
-                            Previous
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="rounded-lg font-bold hover:bg-muted border-border"
-                            disabled={page >= totalPages}
-                            onClick={() => { setPage((p) => p + 1); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 }

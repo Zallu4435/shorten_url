@@ -110,10 +110,12 @@ def list_all_users(
         is_active: Filter by active status (None = show all)
         is_admin : Filter by admin status (None = show all)
     """
-    limit = min(limit, MAX_PAGE_SIZE)
+    # Clamp page and limit to safe bounds before computing offset
+    page = max(1, page)
+    limit = max(1, min(limit, MAX_PAGE_SIZE))
     offset = (page - 1) * limit
 
-    # Mapping frontend sort keys to Django fields
+    # Mapping frontend sort keys to Django fields — unknown keys fall back to newest
     sort_map = {
         "newest": "-created_at",
         "oldest": "created_at",
@@ -121,7 +123,8 @@ def list_all_users(
     }
     django_order = sort_map.get(order_by, "-created_at")
 
-    qs = CustomUser.objects.all().order_by(django_order)
+    # Apply filters first, then sort
+    qs = CustomUser.objects.all()
 
     if search:
         qs = qs.filter(
@@ -132,6 +135,7 @@ def list_all_users(
     if is_admin is not None:
         qs = qs.filter(is_admin=is_admin)
 
+    qs = qs.order_by(django_order)
     total = qs.count()
     users = qs[offset:offset + limit]
 
@@ -250,10 +254,12 @@ def list_all_urls(
         active_only : Show only active URLs
         user_id     : Filter by owner user ID
     """
-    limit = min(limit, MAX_PAGE_SIZE)
+    # Clamp page and limit to safe bounds before computing offset
+    page = max(1, page)
+    limit = max(1, min(limit, MAX_PAGE_SIZE))
     offset = (page - 1) * limit
 
-    # Mapping frontend sort keys to Django fields
+    # Mapping frontend sort keys to Django fields — unknown keys fall back to newest
     sort_map = {
         "newest": "-created_at",
         "oldest": "created_at",
@@ -262,12 +268,14 @@ def list_all_urls(
     }
     django_order = sort_map.get(order_by, "-created_at")
 
-    qs = ShortURL.objects.select_related("user").order_by(django_order)
+    # Apply filters first, then sort
+    qs = ShortURL.objects.select_related("user")
 
     if search:
         qs = qs.filter(
-            Q(slug__icontains=search) | Q(original_url__icontains=search)
-            | Q(title__icontains=search)
+            Q(slug__icontains=search) |
+            Q(original_url__icontains=search) |
+            Q(title__icontains=search)
         )
     if flagged_only:
         qs = qs.filter(is_flagged=True)
@@ -276,6 +284,7 @@ def list_all_urls(
     if user_id:
         qs = qs.filter(user_id=user_id)
 
+    qs = qs.order_by(django_order)
     total = qs.count()
     urls = qs[offset:offset + limit]
 

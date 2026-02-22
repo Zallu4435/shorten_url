@@ -220,6 +220,10 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
 # Set GEOIP2_DATABASE_PATH=/absolute/path/to/GeoLite2-City.mmdb
 GEOIP2_DATABASE_PATH = os.environ.get("GEOIP2_DATABASE_PATH", "")
 
+# If path is relative, resolve it against BASE_DIR
+if GEOIP2_DATABASE_PATH and not os.path.isabs(GEOIP2_DATABASE_PATH):
+    GEOIP2_DATABASE_PATH = str(BASE_DIR / GEOIP2_DATABASE_PATH)
+
 # ─────────────────────────────────────────────
 # Application URLs
 # ─────────────────────────────────────────────

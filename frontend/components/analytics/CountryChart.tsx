@@ -106,8 +106,8 @@ export function CountryChart({ data, loading = false }: CountryChartProps) {
                 ) : (
                     <div className="h-[240px] w-full">
                         <EmptyAnalysisState
-                            title="No Geo-Spectral Data"
-                            description="Satellite origin triangulation failed. No global ingress detected."
+                            title="No Geographic Data"
+                            description="No country data has been recorded yet. Geographic breakdown will appear once visitors start clicking your links."
                             icon={Globe}
                         />
                     </div>

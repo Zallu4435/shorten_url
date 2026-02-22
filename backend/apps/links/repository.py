@@ -107,10 +107,12 @@ def list_by_user(
     Paginated list of short URLs for a specific user.
     Supports search, status filters, and custom sorting.
     """
-    limit = min(limit, MAX_PAGE_SIZE)
+    # Clamp page and limit to safe bounds before computing offset
+    page = max(1, page)
+    limit = max(1, min(limit, MAX_PAGE_SIZE))
     offset = (page - 1) * limit
 
-    # Sort mapping
+    # Sort mapping — unknown keys fall back to newest
     sort_map = {
         "newest": "-created_at",
         "oldest": "created_at",
@@ -119,11 +121,12 @@ def list_by_user(
     }
     django_order = sort_map.get(order_by, "-created_at")
 
-    qs = ShortURL.objects.filter(user=user).order_by(django_order)
+    # Apply filters first, then sort — cleaner query plan
+    qs = ShortURL.objects.filter(user=user)
 
     if search:
         qs = qs.filter(
-            Q(slug__icontains=search) | 
+            Q(slug__icontains=search) |
             Q(original_url__icontains=search) |
             Q(title__icontains=search)
         )
@@ -133,28 +136,16 @@ def list_by_user(
         qs = qs.filter(is_private=is_private)
     if is_flagged is not None:
         qs = qs.filter(is_flagged=is_flagged)
+
+    qs = qs.order_by(django_order)
     total = qs.count()
     urls = qs[offset:offset + limit]
 
     return {"urls": urls, "total": total, "page": page, "limit": limit}
 
 
-def get_all_urls(page: int = 1, limit: int = 20, flagged_only: bool = False) -> dict:
-    """
-    Paginated list of all short URLs (admin use).
-    Optionally filter to only flagged URLs.
-    """
-    limit = min(limit, MAX_PAGE_SIZE)
-    offset = (page - 1) * limit
-
-    qs = ShortURL.objects.select_related("user").order_by("-created_at")
-    if flagged_only:
-        qs = qs.filter(is_flagged=True)
-
-    total = qs.count()
-    urls = qs[offset:offset + limit]
-
-    return {"urls": urls, "total": total, "page": page, "limit": limit}
+# NOTE: get_all_urls() was removed — it was dead code superseded by
+# apps.admin_panel.services.list_all_urls(), which has full search/sort/filter support.
 
 
 def find_duplicate_url(user, original_url: str) -> ShortURL | None:

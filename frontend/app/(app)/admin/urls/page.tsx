@@ -27,6 +27,7 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import { FilterSelect } from "@/components/shared/FilterSelect";
+import { Pagination } from "@/components/shared/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ADMIN_PAGE_SIZE, URL_STATUS_OPTIONS, URL_SORT_OPTIONS } from "@/lib/constants";
 import { toast } from "sonner";
@@ -50,10 +51,15 @@ export default function AdminUrlsPage() {
         orderBy: sort,
     }), [page, debouncedSearch, tab, sort]);
 
-    const { data, loading, refetch } = useQuery<{ allUrls: PaginatedAdminURLs }>(
+    const { data, previousData, loading, refetch } = useQuery<{ allUrls: PaginatedAdminURLs }>(
         ALL_URLS_ADMIN_QUERY,
         { variables }
     );
+
+    // previousData keeps old rows visible during search/filter/page — no full-page flicker
+    const displayData = data ?? previousData;
+    const isFirstLoad = loading && !previousData && !data;
+    const isRefetching = loading && !!displayData;
 
     const [flagUrl, { loading: flagging }] = useMutation(FLAG_URL_MUTATION, {
         onCompleted: () => { toast.success("URL flagged"); refetch(); },
@@ -68,13 +74,17 @@ export default function AdminUrlsPage() {
         onError: (err) => toast.error(err.message),
     });
 
-    const urls = data?.allUrls?.urls ?? [];
-    const total = data?.allUrls?.total ?? 0;
+    const urls = displayData?.allUrls?.urls ?? [];
+    const total = displayData?.allUrls?.total ?? 0;
     const totalPages = Math.ceil(total / ADMIN_PAGE_SIZE);
 
     const handleSearch = (v: string) => { setSearch(v); setPage(1); };
     const handleTab = (v: string) => { setTab(v); setPage(1); };
     const handleSort = (v: string) => { setSort(v); setPage(1); };
+    const handlePageChange = (p: number) => {
+        setPage(p);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
 
     return (
@@ -117,6 +127,12 @@ export default function AdminUrlsPage() {
             <div className="space-y-4">
                 <TechnicalIndicator label="Link Directory" icon={Globe} />
                 <div className="rounded-[32px] border border-border bg-card shadow-sm overflow-hidden backdrop-blur-sm">
+                    {/* Thin loading bar — only during search/filter/paginate refetch */}
+                    {isRefetching && (
+                        <div className="h-0.5 w-full bg-border overflow-hidden">
+                            <div className="h-full bg-primary" style={{ animation: "slide 1.2s ease-in-out infinite" }} />
+                        </div>
+                    )}
                     <Table>
                         <TableHeader className="bg-muted/30">
                             <TableRow className="hover:bg-transparent border-b border-border">
@@ -128,8 +144,8 @@ export default function AdminUrlsPage() {
                                 <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody className={cn("transition-opacity", loading && "opacity-40 pointer-events-none")}>
-                            {loading
+                        <TableBody>
+                            {isFirstLoad
                                 ? Array.from({ length: 8 }).map((_, i) => (
                                     <TableRow key={i}>
                                         <TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell>
@@ -237,21 +253,12 @@ export default function AdminUrlsPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between bg-muted/20 border border-border p-4 rounded-2xl">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                        Page {page} of {totalPages} — {total} total
-                    </p>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border"
-                            disabled={page <= 1} onClick={() => setPage((p) => p - 1)}
-                        >Previous</Button>
-                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border"
-                            disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}
-                        >Next</Button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 }

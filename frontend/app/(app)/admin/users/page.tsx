@@ -28,6 +28,7 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { FilterSelect } from "@/components/shared/FilterSelect";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
 import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
+import { Pagination } from "@/components/shared/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ADMIN_PAGE_SIZE, USER_ROLE_OPTIONS, USER_SORT_OPTIONS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
@@ -53,10 +54,15 @@ export default function AdminUsersPage() {
         orderBy: sort,
     }), [page, debouncedSearch, role, sort]);
 
-    const { data, loading, refetch } = useQuery<{ allUsers: PaginatedUsers }>(
+    const { data, previousData, loading, refetch } = useQuery<{ allUsers: PaginatedUsers }>(
         ALL_USERS_QUERY,
         { variables }
     );
+
+    // previousData keeps old rows visible while new data loads — no full-page flicker
+    const displayData = data ?? previousData;
+    const isFirstLoad = loading && !previousData && !data;
+    const isRefetching = loading && !!displayData;
 
     const [activateUser, { loading: activating }] = useMutation(ACTIVATE_USER_MUTATION, {
         onCompleted: () => { toast.success("User activated"); refetch(); },
@@ -75,13 +81,17 @@ export default function AdminUsersPage() {
         onError: (err) => toast.error(err.message),
     });
 
-    const users = data?.allUsers?.users ?? [];
-    const total = data?.allUsers?.total ?? 0;
+    const users = displayData?.allUsers?.users ?? [];
+    const total = displayData?.allUsers?.total ?? 0;
     const totalPages = Math.ceil(total / ADMIN_PAGE_SIZE);
 
     const handleSearch = (v: string) => { setSearch(v); setPage(1); };
     const handleRole = (v: string) => { setRole(v); setPage(1); };
     const handleSort = (v: string) => { setSort(v); setPage(1); };
+    const handlePageChange = (p: number) => {
+        setPage(p);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
 
     return (
@@ -124,6 +134,12 @@ export default function AdminUsersPage() {
             <div className="space-y-4">
                 <TechnicalIndicator label="User Directory" icon={Shield} />
                 <div className="rounded-[32px] border border-border bg-card shadow-sm overflow-hidden backdrop-blur-sm">
+                    {/* Thin loading bar — visible only during search/filter/paginate refetch */}
+                    {isRefetching && (
+                        <div className="h-0.5 w-full bg-border overflow-hidden">
+                            <div className="h-full bg-primary" style={{ animation: "slide 1.2s ease-in-out infinite" }} />
+                        </div>
+                    )}
                     <Table>
                         <TableHeader className="bg-muted/30">
                             <TableRow className="hover:bg-transparent border-b border-border">
@@ -134,8 +150,8 @@ export default function AdminUsersPage() {
                                 <TableHead className="py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody className={cn("transition-opacity", loading && "opacity-40 pointer-events-none")}>
-                            {loading
+                        <TableBody>
+                            {isFirstLoad
                                 ? Array.from({ length: 8 }).map((_, i) => (
                                     <TableRow key={i}>
                                         <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
@@ -229,23 +245,12 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between bg-muted/20 border border-border p-4 rounded-2xl">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                        Page {page} of {totalPages} — {total} total
-                    </p>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border"
-                            disabled={page <= 1}
-                            onClick={() => setPage((p) => p - 1)}
-                        >Previous</Button>
-                        <Button variant="outline" size="sm" className="h-9 rounded-xl font-bold border-border"
-                            disabled={page >= totalPages}
-                            onClick={() => setPage((p) => p + 1)}
-                        >Next</Button>
-                    </div>
-                </div>
-            )}
+            <Pagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                onPageChange={handlePageChange}
+            />
         </div>
     );
 }

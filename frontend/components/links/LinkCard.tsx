@@ -82,11 +82,9 @@ export function LinkCard({ url }: LinkCardProps) {
                 "flex items-center gap-6 px-8 py-5 group transition-all duration-300 relative overflow-hidden",
                 url.isActive ? "hover:bg-muted/40" : "opacity-60 grayscale-[0.6] bg-muted/5 cursor-not-allowed"
             )}>
-                {/* Deactivated Overlay / Status */}
+                {/* Deactivated — subtle left border accent on the row */}
                 {!url.isActive && (
-                    <div className="absolute top-0 right-0 p-2 opacity-30 select-none pointer-events-none">
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] font-mono">DEACTIVATED_NODE</span>
-                    </div>
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-muted-foreground/20 rounded-full" />
                 )}
 
                 {/* Status Section */}
@@ -117,6 +115,12 @@ export function LinkCard({ url }: LinkCardProps) {
                             /{url.slug}
                         </Link>
                         <div className="flex items-center gap-1.5 ml-1">
+                            {!url.isActive && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted border border-border text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground select-none">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 shrink-0" />
+                                    Deactivated
+                                </span>
+                            )}
                             {url.isPrivate && (
                                 <Badge variant="secondary" className="bg-muted text-[10px] font-bold uppercase tracking-widest px-1.5 h-4 border-none">Private</Badge>
                             )}
