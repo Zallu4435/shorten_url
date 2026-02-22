@@ -23,111 +23,137 @@ logger = logging.getLogger(__name__)
 class JWTAuthMiddleware:
     """
     Graphene-Django middleware for JWT authentication.
-
-    Registered in settings.py under:
-        GRAPHENE = {
-            "MIDDLEWARE": ["shared.middlewares.JWTAuthMiddleware"]
-        }
+    Handles extraction and user injection into GraphQL context.
     """
 
     def resolve(self, next_middleware, root, info, **kwargs):
         """
         Called for every GraphQL field resolution.
-        We only process authentication at the root level (root is None)
-        to avoid redundant DB lookups on every field.
         """
         if root is None:
             self._authenticate_request(info)
+        
         return next_middleware(root, info, **kwargs)
 
     def _authenticate_request(self, info):
         """
-        Extract and validate the JWT token from the request headers.
+        Extract and validate the JWT token from cookies or Authorization header.
         Attaches `user` to info.context — either a User instance or None.
         """
         request = info.context
 
-        # Ensure user attribute exists (default: None = anonymous)
         if not hasattr(request, "user") or request.user is None:
             request.user = None
 
-        # Extract token from Authorization header
         token = self._extract_token(request)
         if not token:
-            return  # Anonymous request — no token present
+            return
 
-        # Decode & validate the token
         user = self._get_user_from_token(token)
         request.user = user
 
     def _extract_token(self, request) -> str | None:
         """
-        Reads the Authorization header and extracts the Bearer token.
-        Returns the raw token string or None.
+        Extracts the token from cookies (access_token) or Authorization header.
         """
+        # 1. Try Cookies (recommended for frontend)
+        token = request.COOKIES.get("access_token")
+        if token:
+            return token
+
+        # 2. Fallback to Authorization header
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
-        if not auth_header:
-            return None
+        if auth_header:
+            parts = auth_header.split()
+            if len(parts) == 2 and parts[0].lower() == "bearer":
+                return parts[1]
 
-        parts = auth_header.split()
-
-        if len(parts) != 2:
-            logger.debug("Malformed Authorization header: expected 'Bearer <token>'")
-            return None
-
-        prefix, token = parts
-        if prefix.lower() != "bearer":
-            logger.debug(f"Unsupported auth scheme: {prefix}")
-            return None
-
-        return token
+        return None
 
     def _get_user_from_token(self, token: str):
         """
         Decodes the JWT token and returns the corresponding User.
-        Returns None on any failure — errors are logged, not raised.
-        Exceptions are only raised in resolvers via decorators.
         """
         try:
             payload = jwt.decode(
                 token,
                 settings.JWT_SECRET_KEY,
                 algorithms=[settings.JWT_ALGORITHM],
+                leeway=10,
             )
-        except jwt.ExpiredSignatureError:
-            logger.debug("JWT access token has expired.")
-            return None
-        except jwt.InvalidTokenError as e:
-            logger.debug(f"Invalid JWT token: {e}")
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
             return None
 
-        # Validate token type — must be access token
         if payload.get("type") != "access":
-            logger.debug("Token type is not 'access'.")
             return None
 
         user_id = payload.get("user_id")
         if not user_id:
-            logger.debug("JWT payload missing 'user_id'.")
             return None
 
-        # Fetch user from DB
         return self._fetch_user(user_id)
 
     def _fetch_user(self, user_id: str):
-        """
-        Fetches the user from the database by ID.
-        Returns the user if active, None otherwise.
-        """
+        """Fetches active user from DB."""
         try:
-            # Import here to avoid circular imports at module load time
             from apps.users.models import CustomUser
+            return CustomUser.objects.get(id=user_id, is_active=True)
+        except (CustomUser.DoesNotExist, Exception):
+            return None
 
-            user = CustomUser.objects.get(id=user_id, is_active=True)
-            return user
-        except CustomUser.DoesNotExist:
-            logger.debug(f"User with id={user_id} not found or inactive.")
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error fetching user from JWT: {e}")
-            return None
+
+class JWTCookieMiddleware:
+    """
+    Standard Django middleware to handle setting/clearing JWT cookies.
+    Reads flags set on the request object during mutation execution.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return self.process_response(request, response)
+
+    def process_response(self, request, response):
+        """
+        Apply cookie changes if flags are present on the request.
+        """
+        # Set Access Token Cookie
+        if hasattr(request, "_set_access_token"):
+            response.set_cookie(
+                key="access_token",
+                value=request._set_access_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite="Lax",
+                max_age=settings.JWT_ACCESS_TOKEN_EXPIRY_MINUTES * 60,
+            )
+            # Set a light indicator for the frontend (JS-accessible)
+            response.set_cookie(
+                key="is_logged_in",
+                value="true",
+                httponly=False,
+                secure=not settings.DEBUG,
+                samesite="Lax",
+                max_age=settings.JWT_REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60,
+            )
+
+        # Set Refresh Token Cookie
+        if hasattr(request, "_set_refresh_token"):
+            response.set_cookie(
+                key="refresh_token",
+                value=request._set_refresh_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite="Lax",
+                max_age=settings.JWT_REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60,
+            )
+
+        # Clear Auth Cookies (Logout)
+        if getattr(request, "_clear_auth_cookies", False):
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            response.delete_cookie("is_logged_in")
+
+        return response

@@ -25,7 +25,7 @@ load_dotenv(BASE_DIR / ".env")
 # ─────────────────────────────────────────────
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-default-key-change-in-production")
 DEBUG = os.environ.get("DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 
 # ─────────────────────────────────────────────
 # Installed Applications
@@ -67,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "shared.middlewares.JWTCookieMiddleware",
 ]
 
 # ─────────────────────────────────────────────
@@ -230,6 +231,33 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 # ─────────────────────────────────────────────
 MAX_URLS_PER_HOUR = int(os.environ.get("MAX_URLS_PER_HOUR", 50))
 MAX_URLS_PER_DAY = int(os.environ.get("MAX_URLS_PER_DAY", 200))
+
+# CSRF — Trusted Origins for Cookies
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
+# Secure Cookie Settings
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# In production, use Secure cookies and security headers
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # HTTPS / SSL
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    
+    # HSTS (Strict-Transport-Security)
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Browser features
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ─────────────────────────────────────────────
 # Logging

@@ -9,27 +9,14 @@ import {
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import {
-    getAccessToken,
-    getRefreshToken,
-    setTokens,
     clearTokens,
+    isAuthenticated,
 } from "./auth";
 import { REFRESH_TOKEN_MUTATION } from "./graphql/mutations";
 
 const httpLink = new HttpLink({
     uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql/",
-});
-
-// Attach JWT access token to every request
-const authLink = new ApolloLink((operation, forward) => {
-    const token = getAccessToken();
-    operation.setContext(({ headers = {} }: { headers: Record<string, string> }) => ({
-        headers: {
-            ...headers,
-            ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
-    }));
-    return forward(operation);
+    credentials: "include", // Essential for sending/receiving cookies
 });
 
 // Handle token expiry — auto-refresh and retry once
@@ -44,41 +31,42 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
             msg.includes("authentication");
 
         if (isAuthError) {
-            const refreshToken = getRefreshToken();
-            if (!refreshToken) {
-                clearTokens();
-                if (typeof window !== "undefined") window.location.href = "/login";
+            // If we're not even supposed to be logged in, don't try to refresh
+            if (!isAuthenticated()) {
+                if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+                    // window.location.href = "/login"; // Optional: only redirect if access is strictly required
+                }
                 return;
             }
 
+            // Prevent multiple simultaneous refresh attempts for the same request
+            if (operation.getContext()._isRefreshing) return;
+            operation.setContext({ _isRefreshing: true });
+
+            // ... (rest of the logic)
+
             return new Observable<FetchResult>((observer) => {
-                // Use client directly to refresh — no circular import needed here
                 const client = new ApolloClient({ link: httpLink, cache: new InMemoryCache() });
                 client
                     .mutate<{ refreshToken: { accessToken: string; refreshToken: string } }>({
                         mutation: REFRESH_TOKEN_MUTATION,
-                        variables: { refreshToken },
                     })
                     .then(({ data }) => {
-                        const tokens = data?.refreshToken;
-                        if (!tokens) {
-                            clearTokens();
-                            if (typeof window !== "undefined") window.location.href = "/login";
-                            observer.complete();
-                            return;
+                        if (!data?.refreshToken) {
+                            throw new Error("No refresh token data");
                         }
-                        setTokens(tokens.accessToken, tokens.refreshToken);
-                        operation.setContext(({ headers = {} }: { headers: Record<string, string> }) => ({
-                            headers: {
-                                ...headers,
-                                authorization: `Bearer ${tokens.accessToken}`,
-                            },
-                        }));
+                        // Retry original operation
                         forward(operation).subscribe(observer);
                     })
                     .catch(() => {
+                        // If refresh fails, clear everything and go to login
                         clearTokens();
-                        if (typeof window !== "undefined") window.location.href = "/login";
+                        if (typeof window !== "undefined") {
+                            // Only redirect if we're not already on the login page
+                            if (!window.location.pathname.startsWith("/login")) {
+                                window.location.href = "/login";
+                            }
+                        }
                         observer.complete();
                     });
             });
@@ -87,6 +75,7 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
 });
 
 const cache = new InMemoryCache({
+    // ... (rest of cache config remains same)
     typePolicies: {
         Query: {
             fields: {
@@ -108,7 +97,7 @@ const cache = new InMemoryCache({
 });
 
 const client = new ApolloClient({
-    link: from([errorLink, authLink, httpLink]),
+    link: from([errorLink, httpLink]), // AuthLink removed — cookies handled automatically
     cache,
     defaultOptions: {
         watchQuery: { fetchPolicy: "cache-first" },

@@ -180,6 +180,3 @@ def revoke_all_user_tokens(user: CustomUser) -> int:
     logger.info(f"Revoked {count} refresh token(s) for user: {user.email}")
     return count
 
-
-    logger.info(f"Revoked {count} refresh token(s) for user: {user.email}")
-    return count

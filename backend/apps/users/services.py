@@ -167,10 +167,7 @@ def refresh_tokens(raw_refresh_token: str) -> dict:
     # Hash the incoming token to look it up in DB
     token_hash = _hash_token(raw_refresh_token)
 
-    try:
-        stored_token = repository.get_refresh_token_by_hash(token_hash)
-    except Exception:
-        raise InvalidTokenError("Invalid or unrecognized refresh token.")
+    stored_token = repository.get_refresh_token_by_hash(token_hash)
 
     # Check revocation
     if stored_token.is_revoked:

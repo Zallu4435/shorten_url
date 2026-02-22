@@ -48,6 +48,11 @@ class Register(graphene.Mutation):
             username=username,
             password=password,
         )
+        
+        # Set tokens in request context for middleware to handle cookies
+        info.context._set_access_token = result["access_token"]
+        info.context._set_refresh_token = result["refresh_token"]
+
         return AuthPayloadType(
             access_token=result["access_token"],
             refresh_token=result["refresh_token"],
@@ -82,6 +87,11 @@ class Login(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, email: str, password: str):
         result = services.login_user(email=email, password=password)
+
+        # Set tokens in request context for middleware to handle cookies
+        info.context._set_access_token = result["access_token"]
+        info.context._set_refresh_token = result["refresh_token"]
+
         return AuthPayloadType(
             access_token=result["access_token"],
             refresh_token=result["refresh_token"],
@@ -109,15 +119,27 @@ class RefreshToken(graphene.Mutation):
 
     class Arguments:
         refresh_token = graphene.String(
-            required=True,
-            description="The refresh token received from login or register."
+            required=False,
+            description="The refresh token string. Optional if sending via cookie."
         )
 
     Output = TokenRefreshPayloadType
 
     @classmethod
-    def mutate(cls, root, info, refresh_token: str):
-        result = services.refresh_tokens(raw_refresh_token=refresh_token)
+    def mutate(cls, root, info, refresh_token: str = None):
+        # Prioritize token from cookie if not provided in arguments
+        actual_token = refresh_token or info.context.COOKIES.get("refresh_token")
+        
+        if not actual_token:
+            from shared.exceptions import InvalidTokenError
+            raise InvalidTokenError("No refresh token provided.")
+
+        result = services.refresh_tokens(raw_refresh_token=actual_token)
+
+        # Set new tokens in cookies via request context flags
+        info.context._set_access_token = result["access_token"]
+        info.context._set_refresh_token = result["refresh_token"]
+
         return TokenRefreshPayloadType(
             access_token=result["access_token"],
             refresh_token=result["refresh_token"],
@@ -144,15 +166,23 @@ class Logout(graphene.Mutation):
 
     class Arguments:
         refresh_token = graphene.String(
-            required=True,
-            description="The refresh token to invalidate."
+            required=False,
+            description="The refresh token to invalidate. Optional if sending via cookie."
         )
 
     Output = MessageType
 
     @classmethod
-    def mutate(cls, root, info, refresh_token: str):
-        services.logout_user(raw_refresh_token=refresh_token)
+    def mutate(cls, root, info, refresh_token: str = None):
+        # Prioritize token from cookie if not provided in arguments
+        actual_token = refresh_token or info.context.COOKIES.get("refresh_token")
+        
+        if actual_token:
+            services.logout_user(raw_refresh_token=actual_token)
+        
+        # Flag to clear cookies in response
+        info.context._clear_auth_cookies = True
+
         return MessageType(
             success=True,
             message="You have been logged out successfully."

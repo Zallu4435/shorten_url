@@ -32,7 +32,7 @@ export const LOGIN_MUTATION = gql`
 `;
 
 export const REFRESH_TOKEN_MUTATION = gql`
-  mutation RefreshToken($refreshToken: String!) {
+  mutation RefreshToken($refreshToken: String) {
     refreshToken(refreshToken: $refreshToken) {
       accessToken
       refreshToken
@@ -41,7 +41,7 @@ export const REFRESH_TOKEN_MUTATION = gql`
 `;
 
 export const LOGOUT_MUTATION = gql`
-  mutation Logout($refreshToken: String!) {
+  mutation Logout($refreshToken: String) {
     logout(refreshToken: $refreshToken) {
       success
       message

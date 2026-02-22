@@ -19,9 +19,7 @@ import {
     LOGOUT_MUTATION,
 } from "@/lib/graphql/mutations";
 import {
-    setTokens,
     clearTokens,
-    getRefreshToken,
     isAuthenticated,
 } from "@/lib/auth";
 import type { User } from "@/types";
@@ -63,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [apolloClient]);
 
-    // On mount: restore session if token is still valid
+    // On mount: restore session if cookie exists
     useEffect(() => {
         if (isAuthenticated()) {
             fetchCurrentUser();
@@ -79,9 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
             if (errors?.length) throw new Error(errors[0].message);
             if (!data?.login) throw new Error("Login failed");
-            const { accessToken, refreshToken, user: loggedInUser } = data.login;
-            setTokens(accessToken, refreshToken);
-            setUser(loggedInUser);
+
+            // Cookies are set automatically by backend
+            setUser(data.login.user);
         },
         [loginMutation]
     );
@@ -93,22 +91,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
             if (errors?.length) throw new Error(errors[0].message);
             if (!data?.register) throw new Error("Registration failed");
-            const { accessToken, refreshToken, user: newUser } = data.register;
-            setTokens(accessToken, refreshToken);
-            setUser(newUser);
+
+            // Cookies are set automatically by backend
+            setUser(data.register.user);
         },
         [registerMutation]
     );
 
     const logout = useCallback(async () => {
         setIsLoggingOut(true);
-        const refreshToken = getRefreshToken();
-        if (refreshToken) {
-            try {
-                await logoutMutation({ variables: { refreshToken } });
-            } catch {
-                // Always clear locally even if server call fails
-            }
+        try {
+            // refresh_token cookie is sent automatically
+            await logoutMutation();
+        } catch {
+            // Always clear locally even if server call fails
         }
         clearTokens();
         setUser(null);
