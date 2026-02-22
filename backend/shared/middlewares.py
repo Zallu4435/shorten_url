@@ -119,14 +119,17 @@ class JWTCookieMiddleware:
         """
         Apply cookie changes if flags are present on the request.
         """
+        samesite = "None" if not settings.DEBUG else "Lax"
+        secure = not settings.DEBUG
+
         # Set Access Token Cookie
         if hasattr(request, "_set_access_token"):
             response.set_cookie(
                 key="access_token",
                 value=request._set_access_token,
                 httponly=True,
-                secure=not settings.DEBUG,
-                samesite="Lax",
+                secure=secure,
+                samesite=samesite,
                 max_age=settings.JWT_ACCESS_TOKEN_EXPIRY_MINUTES * 60,
             )
             # Set a light indicator for the frontend (JS-accessible)
@@ -134,8 +137,8 @@ class JWTCookieMiddleware:
                 key="is_logged_in",
                 value="true",
                 httponly=False,
-                secure=not settings.DEBUG,
-                samesite="Lax",
+                secure=secure,
+                samesite=samesite,
                 max_age=settings.JWT_REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60,
             )
 
@@ -145,8 +148,8 @@ class JWTCookieMiddleware:
                 key="refresh_token",
                 value=request._set_refresh_token,
                 httponly=True,
-                secure=not settings.DEBUG,
-                samesite="Lax",
+                secure=secure,
+                samesite=samesite,
                 max_age=settings.JWT_REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60,
             )
 
