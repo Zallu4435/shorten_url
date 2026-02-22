@@ -59,7 +59,7 @@ export function Topbar() {
     }>(MY_URLS_QUERY, {
         variables: urlVariables,
         skip: !showResults || !debouncedSearch.trim(),
-        fetchPolicy: "cache-and-network",
+        fetchPolicy: "cache-first",
     });
 
     const { data: userData, loading: usersLoading } = useQuery<{
@@ -67,7 +67,7 @@ export function Topbar() {
     }>(ALL_USERS_QUERY, {
         variables: userVariables,
         skip: !showResults || !debouncedSearch.trim() || !user?.isAdmin,
-        fetchPolicy: "cache-and-network",
+        fetchPolicy: "cache-first",
     });
 
     const loadingResults = urlsLoading || usersLoading;

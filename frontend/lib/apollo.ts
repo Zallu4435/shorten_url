@@ -2,80 +2,144 @@ import {
     ApolloClient,
     InMemoryCache,
     HttpLink,
-    ApolloLink,
     from,
     Observable,
     FetchResult,
 } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
-import {
-    clearTokens,
-    isAuthenticated,
-} from "./auth";
-import { REFRESH_TOKEN_MUTATION } from "./graphql/mutations";
+import { clearTokens, isAuthenticated } from "./auth";
+
+const GRAPHQL_URL =
+    process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql/";
 
 const httpLink = new HttpLink({
-    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql/",
-    credentials: "include", // Essential for sending/receiving cookies
+    uri: GRAPHQL_URL,
+    credentials: "include", // Essential for sending/receiving HttpOnly cookies
 });
 
-// Handle token expiry — auto-refresh and retry once
+// ─── Token Refresh State ───────────────────────────────────────────────────
+// Module-level flags so ALL concurrent 401 failures share the same refresh
+// attempt. Resolvers queued here are replayed once the refresh succeeds.
+let isRefreshing = false;
+let pendingRequests: Array<() => void> = [];
+
+/**
+ * Queue a callback to run after the in-progress refresh completes.
+ * If no refresh is happening, execute immediately.
+ */
+function queueRequest(callback: () => void): Promise<void> {
+    return new Promise((resolve) => {
+        pendingRequests.push(() => {
+            callback();
+            resolve();
+        });
+    });
+}
+
+function resolvePendingRequests() {
+    pendingRequests.forEach((cb) => cb());
+    pendingRequests = [];
+}
+
+function rejectPendingRequests() {
+    pendingRequests = [];
+}
+
+// ─── Refresh Helper ────────────────────────────────────────────────────────
+/**
+ * Calls the refreshToken mutation via a plain fetch (not Apollo) to avoid
+ * creating a recursive loop through the errorLink.
+ * The backend reads the refresh_token HttpOnly cookie automatically and
+ * sets new access_token + refresh_token cookies in the response.
+ */
+async function doRefreshToken(): Promise<boolean> {
+    try {
+        const res = await fetch(GRAPHQL_URL, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                query: `mutation RefreshToken { refreshToken { accessToken } }`,
+            }),
+        });
+
+        const json = await res.json();
+
+        // GraphQL errors from the refresh itself (e.g. expired refresh token)
+        if (json?.errors?.length || !json?.data?.refreshToken) {
+            return false;
+        }
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// ─── Error Link ────────────────────────────────────────────────────────────
+/**
+ * Intercepts GraphQL authentication errors caused by an expired access token.
+ * Attempts a single token refresh, then replays all queued operations.
+ * If the refresh fails, clears the session and redirects to login.
+ */
 const errorLink = onError(({ graphQLErrors, operation, forward }) => {
     if (!graphQLErrors) return;
 
-    for (const err of graphQLErrors) {
-        const msg = err.message?.toLowerCase() ?? "";
-        const isAuthError =
-            msg.includes("not authenticated") ||
-            msg.includes("token") ||
-            msg.includes("authentication");
+    // Detect authentication errors using the reliable machine-readable `code`
+    // set by the backend on every AuthenticationError → extensions.code = "UNAUTHENTICATED".
+    // This is far more robust than substring-matching the human-readable message,
+    // which differs across error types (AuthenticationError, TokenExpiredError, etc.).
+    // We intentionally do NOT match "FORBIDDEN" (403 / PermissionDeniedError) — those
+    // mean the user IS authenticated but lacks permission, so refreshing won't help.
+    const hasAuthError = graphQLErrors.some((err) => {
+        const code = (err.extensions?.code as string) ?? "";
+        return code === "UNAUTHENTICATED";
+    });
 
-        if (isAuthError) {
-            // If we're not even supposed to be logged in, don't try to refresh
-            if (!isAuthenticated()) {
-                if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-                    // window.location.href = "/login"; // Optional: only redirect if access is strictly required
-                }
-                return;
-            }
+    if (!hasAuthError) return;
 
-            // Prevent multiple simultaneous refresh attempts for the same request
-            if (operation.getContext()._isRefreshing) return;
-            operation.setContext({ _isRefreshing: true });
-
-            // ... (rest of the logic)
-
-            return new Observable<FetchResult>((observer) => {
-                const client = new ApolloClient({ link: httpLink, cache: new InMemoryCache() });
-                client
-                    .mutate<{ refreshToken: { accessToken: string; refreshToken: string } }>({
-                        mutation: REFRESH_TOKEN_MUTATION,
-                    })
-                    .then(({ data }) => {
-                        if (!data?.refreshToken) {
-                            throw new Error("No refresh token data");
-                        }
-                        // Retry original operation
-                        forward(operation).subscribe(observer);
-                    })
-                    .catch(() => {
-                        // If refresh fails, clear everything and go to login
-                        clearTokens();
-                        if (typeof window !== "undefined") {
-                            // Only redirect if we're not already on the login page
-                            if (!window.location.pathname.startsWith("/login")) {
-                                window.location.href = "/login";
-                            }
-                        }
-                        observer.complete();
-                    });
-            });
+    // Skip if the user isn't even supposed to be logged in
+    if (!isAuthenticated()) {
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+            window.location.href = "/login";
         }
+        return;
     }
+
+    return new Observable<FetchResult>((observer) => {
+        if (isRefreshing) {
+            // Another request is already doing the refresh.
+            // Queue this operation to be retried once the refresh resolves.
+            queueRequest(() => {
+                forward(operation).subscribe(observer);
+            });
+            return;
+        }
+
+        isRefreshing = true;
+
+        doRefreshToken().then((success) => {
+            isRefreshing = false;
+
+            if (success) {
+                // Replay all queued operations (including this one)
+                resolvePendingRequests();
+                forward(operation).subscribe(observer);
+            } else {
+                // Refresh token is also expired or invalid — force logout
+                rejectPendingRequests();
+                clearTokens();
+                observer.error(new Error("Session expired. Please log in again."));
+                if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+                    window.location.href = "/login";
+                }
+            }
+        });
+    });
 });
 
+// ─── Cache ─────────────────────────────────────────────────────────────────
 const cache = new InMemoryCache({
-    // ... (rest of cache config remains same)
     typePolicies: {
         Query: {
             fields: {
@@ -96,8 +160,9 @@ const cache = new InMemoryCache({
     },
 });
 
+// ─── Client ────────────────────────────────────────────────────────────────
 const client = new ApolloClient({
-    link: from([errorLink, httpLink]), // AuthLink removed — cookies handled automatically
+    link: from([errorLink, httpLink]),
     cache,
     defaultOptions: {
         watchQuery: { fetchPolicy: "cache-first" },
