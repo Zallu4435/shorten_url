@@ -28,6 +28,7 @@ class TunnelType(DjangoObjectType):
             "local_port",
             "is_active",
             "last_connected_at",
+            "bandwidth_bytes",
             "created_at",
             "updated_at",
         ]

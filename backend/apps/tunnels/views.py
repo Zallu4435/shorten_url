@@ -14,8 +14,9 @@ import json
 import base64
 import asyncio
 import logging
+from urllib.parse import urlparse, urlunparse
 from asgiref.sync import async_to_sync
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.views import View
 
 from apps.tunnels import registry, repository
@@ -23,7 +24,8 @@ from apps.tunnels.consumers import AgentConsumer
 
 logger = logging.getLogger(__name__)
 
-MAX_RESPONSE_BODY_BYTES = 50 * 1024 * 1024  # 50MB
+# Max body size for incoming requests (50MB)
+MAX_REQUEST_BODY_BYTES = 50 * 1024 * 1024
 
 
 class TunnelProxyView(View):
@@ -32,40 +34,46 @@ class TunnelProxyView(View):
     """
 
     def dispatch(self, request, alias: str, subpath: str = ""):
-        # Build the path to forward (include query string)
+        # 1. Body Size Protection
+        content_length = request.META.get("CONTENT_LENGTH")
+        if content_length and int(content_length) > MAX_REQUEST_BODY_BYTES:
+            return HttpResponse("Request entity too large.", status=413)
+
+        # 2. Path Construction
         path = "/" + subpath
         if request.META.get("QUERY_STRING"):
             path += "?" + request.META["QUERY_STRING"]
 
-        # Check alias in registry (is agent connected?)
+        # 3. Connection Check
+        tunnel = repository.get_tunnel_by_alias(alias)
+        if not tunnel:
+            return self._not_found_response(alias)
+
         channel_name = registry.get_channel(alias)
         if not channel_name:
-            # Check if alias even exists (for a better error message)
-            tunnel = repository.get_tunnel_by_alias(alias)
-            if not tunnel:
-                return self._not_found_response(alias)
             return self._offline_response(alias)
 
-        # Serialize request
+        # 4. Header Serialization
         headers = {
             key: val
             for key, val in request.META.items()
             if key.startswith("HTTP_") or key in ("CONTENT_TYPE", "CONTENT_LENGTH")
         }
-        
-        # Add standard proxy headers
         headers["HTTP_X_FORWARDED_HOST"] = request.get_host()
         headers["HTTP_X_FORWARDED_PROTO"] = "https" if request.is_secure() else "http"
         headers["HTTP_X_FORWARDED_PREFIX"] = f"/t/{alias}/"
 
+        # 5. Body Serialization
         try:
-            # Send body as base64 to handle binary data
             body_b64 = base64.b64encode(request.body).decode("utf-8")
         except Exception:
             body_b64 = ""
 
-        # Forward to agent over WS and wait for response
+        # 6. Forward to Agent
         try:
+            # Track request bandwidth (upstream)
+            req_size = len(request.body) if request.body else 0
+            
             response_data = async_to_sync(AgentConsumer.forward_request)(
                 channel_name=channel_name,
                 method=request.method,
@@ -74,30 +82,22 @@ class TunnelProxyView(View):
                 body=body_b64,
                 timeout=30,
             )
+
+            # Track request bandwidth (upstream)
+            repository.increment_bandwidth(str(tunnel.id), req_size)
+
         except Exception as e:
-            logger.error("TunnelProxyView error alias=%s: %s", alias, e)
+            logger.error("Proxy failure for alias=%s: %s", alias, e)
             return self._error_response(alias)
 
         if response_data is None:
-            # Timeout
             return self._timeout_response(alias)
 
-        # Build and return the proxied HTTP response
-        response = self._build_response(response_data, alias)
-        
-        # Set a cookie to persist the tunnel alias for this session
-        # Fix: path="/" ensures it's sent for root-level requests like /dashboard
-        response.set_cookie(
-            "tunnel_alias",
-            alias,
-            max_age=3600,  # 1 hour
-            httponly=True,
-            samesite="Lax",
-            path="/",
-        )
-        return response
+        # 7. Build Streaming Response
+        # Response tracking happens inside build_streaming_response
+        return self._build_streaming_response(response_data, alias, tunnel_id=str(tunnel.id) if tunnel else None)
 
-    def _build_response(self, data: dict, alias: str) -> HttpResponse:
+    def _build_streaming_response(self, data: dict, alias: str, tunnel_id: str | None = None) -> HttpResponse:
         status = data.get("status", 200)
         body_b64 = data.get("body", "")
         headers = data.get("headers", {})
@@ -107,42 +107,55 @@ class TunnelProxyView(View):
         except Exception:
             body_bytes = b""
 
-        # Safety: enforce response size limit
-        if len(body_bytes) > MAX_RESPONSE_BODY_BYTES:
-            return HttpResponse("Response too large (> 50MB).", status=413)
+        # Track response bandwidth (downstream)
+        if tunnel_id:
+            repository.increment_bandwidth(tunnel_id, len(body_bytes))
 
-        response = HttpResponse(body_bytes, status=status)
-        # Forward headers from agent (skip hop-by-hop headers)
-        skip = {"transfer-encoding", "connection", "keep-alive"}
+        # Use StreamingHttpResponse for big payloads (memory efficient)
+        # We simulate a stream by yielding the full chunk here. 
+        # Future enhancement: chunked transfer between agent and server.
+        def stream_content():
+            yield body_bytes
+
+        response = StreamingHttpResponse(stream_content(), status=status)
         
-        # Define prefix for rewriting redirects
+        skip = {"transfer-encoding", "connection", "keep-alive", "content-length"}
         prefix = f"/t/{alias}/"
 
         for key, val in headers.items():
             lkey = key.lower()
-            if lkey not in skip:
-                # Rewrite redirects to stay within the tunnel 
-                if lkey == "location":
-                    # Case 1: Absolute path (e.g. /dashboard)
-                    if val.startswith("/") and not val.startswith(prefix):
-                        val = prefix + val.lstrip("/")
+            if lkey in skip:
+                continue
+
+            # Robust Location Rewriting using urllib.parse
+            if lkey == "location":
+                try:
+                    parsed = urlparse(val)
+                    # Case 1: Relative or Absolute Path (/dashboard)
+                    if not parsed.netloc:
+                        if parsed.path.startswith("/") and not parsed.path.startswith(prefix):
+                            new_path = prefix + parsed.path.lstrip("/")
+                            val = urlunparse(parsed._replace(path=new_path))
                     
-                    # Case 2: Fully qualified URL (e.g. http://localhost:3000/...)
-                    # We rewrite these only if they point to the known local target
-                    elif "localhost:3000" in val or "127.0.0.1:3000" in val:
-                        # Extract the path after the origin
-                        import re
-                        path_match = re.search(r'https?://[^/]+(/?.*)', val)
-                        if path_match:
-                            val = f"{prefix.rstrip('/')}{path_match.group(1)}"
+                    # Case 2: Fully qualified URL (http://localhost:3000/...)
+                    elif parsed.netloc in ["localhost:3000", "127.0.0.1:3000"]:
+                        if not parsed.path.startswith(prefix):
+                            new_path = prefix + parsed.path.lstrip("/")
+                            val = urlunparse(parsed._replace(netloc=request.get_host(), path=new_path))
+                except Exception:
+                    pass
 
-                # Rewrite Set-Cookie paths so they apply to the tunnel subpath
-                elif lkey == "set-cookie":
-                    if "Path=/" in val:
-                        # Replace Path=/ with Path=/t/<alias>/
-                        val = val.replace("Path=/", f"Path={prefix}")
+            # Cookie path isolation
+            elif lkey == "set-cookie":
+                if "Path=/" in val:
+                    val = val.replace("Path=/", f"Path={prefix}")
 
-                response[key] = val
+            response[key] = val
+
+        # Persist session alias
+        response.set_cookie(
+            "tunnel_alias", alias, max_age=3600, httponly=True, samesite="Lax", path="/"
+        )
         return response
 
     @staticmethod

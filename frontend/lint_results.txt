@@ -1,0 +1,87 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/admin/users/page.tsx
+  36:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/links/LinksPageClient.tsx
+  20:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/app/(app)/tunnels/TunnelsPageClient.tsx
+   5:30  warning  'Activity' is defined but never used          @typescript-eslint/no-unused-vars
+  12:10  warning  'Alert' is defined but never used             @typescript-eslint/no-unused-vars
+  12:17  warning  'AlertDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  12:35  warning  'AlertTitle' is defined but never used        @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/auth/RegisterForm.tsx
+  53:22  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/home/zallu/Desktop/shorten_url/frontend/components/auth/RegisterForm.tsx:53:22
+  51 |     });
+  52 |
+> 53 |     const password = form.watch("password");
+     |                      ^^^^ React Hook Form's `useForm()` API returns a `watch()` function which cannot be memoized safely.
+  54 |     const strength = getPasswordStrength(password);
+  55 |
+  56 |     const onSubmit = async (values: RegisterValues) => {  react-hooks/incompatible-library
+
+/home/zallu/Desktop/shorten_url/frontend/components/shared/Portal.tsx
+  14:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/zallu/Desktop/shorten_url/frontend/components/shared/Portal.tsx:14:9
+  12 |
+  13 |     useEffect(() => {
+> 14 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |     }, []);
+  16 |
+  17 |     if (!mounted) return null;  react-hooks/set-state-in-effect
+
+/home/zallu/Desktop/shorten_url/frontend/components/tunnels/CreateTunnelModal.tsx
+  13:10  warning  'cn' is defined but never used            @typescript-eslint/no-unused-vars
+  67:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/zallu/Desktop/shorten_url/frontend/components/tunnels/TokenRevealModal.tsx
+  27:5  warning  'serverUrl' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/home/zallu/Desktop/shorten_url/frontend/components/tunnels/TunnelCard.tsx
+   8:5   warning  'Globe' is defined but never used         @typescript-eslint/no-unused-vars
+  13:5   warning  'Activity' is defined but never used      @typescript-eslint/no-unused-vars
+  14:5   warning  'PlugZap' is defined but never used       @typescript-eslint/no-unused-vars
+  16:5   warning  'Power' is defined but never used         @typescript-eslint/no-unused-vars
+  93:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/zallu/Desktop/shorten_url/frontend/hooks/useTunnelStatusSync.ts
+  110:8   warning  React Hook useEffect has a missing dependency: 'token'. Either include it or remove the dependency array                                  react-hooks/exhaustive-deps
+  110:17  warning  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+
+/home/zallu/Desktop/shorten_url/frontend/public/agent/agent.js
+    2:7   warning  'fs' is assigned a value but never used    @typescript-eslint/no-unused-vars
+    2:12  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+    3:7   warning  'path' is assigned a value but never used  @typescript-eslint/no-unused-vars
+    3:14  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+    4:7   warning  'http' is assigned a value but never used  @typescript-eslint/no-unused-vars
+    4:14  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+    5:22  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+   26:43  warning  'e' is defined but never used              @typescript-eslint/no-unused-vars
+   27:46  warning  'e' is defined but never used              @typescript-eslint/no-unused-vars
+   28:49  warning  'e' is defined but never used              @typescript-eslint/no-unused-vars
+   35:22  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+   68:19  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+   69:23  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+   72:18  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+  150:52  warning  'e' is defined but never used              @typescript-eslint/no-unused-vars
+  223:10  warning  'padRight' is defined but never used       @typescript-eslint/no-unused-vars
+
+✖ 34 problems (11 errors, 23 warnings)
+

@@ -291,14 +291,14 @@ export default function SettingsPage() {
                                         Delete Account
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="rounded-[40px] border-red-500/20 bg-card shadow-2xl max-w-md p-0 overflow-hidden">
+                                <DialogContent className="rounded-[32px] border-red-500/20 bg-card shadow-2xl max-w-md p-0 overflow-hidden">
                                     <div className="p-8 space-y-6">
                                         <DialogHeader className=" space-y-4">
-                                            <TechnicalIndicator label="Terminal Operation" icon={ShieldAlert} color="red" />
-                                            <DialogTitle className="text-3xl font-black tracking-tighter text-foreground leading-none">
-                                                Confirm Node<br />Deactivation
+                                            <TechnicalIndicator label="Terminal Operation" icon={ShieldAlert} color="red" className="mb-0" />
+                                            <DialogTitle className="text-2xl font-black tracking-tighter text-foreground leading-none">
+                                                Confirm Node Deactivation
                                             </DialogTitle>
-                                            <DialogDescription className="text-sm font-bold text-muted-foreground leading-relaxed">
+                                            <DialogDescription className="text-sm font-bold text-muted-foreground leading-relaxed mt-2">
                                                 Warning: This protocol will permanently wipe your links, analytics, and profile from the registry. This action <span className="text-red-500 underline underline-offset-2">is irreversible</span>.
                                             </DialogDescription>
                                         </DialogHeader>
@@ -325,10 +325,10 @@ export default function SettingsPage() {
                                                     {deletingAccount ? <Loader2 className="h-5 w-5 animate-spin" /> : "Initiate Full Wipe"}
                                                 </Button>
                                                 <Button
-                                                    variant="ghost"
+                                                    variant="outline"
                                                     type="button"
                                                     onClick={() => setIsDeleteDialogOpen(false)}
-                                                    className="h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] w-full text-muted-foreground hover:bg-muted/50 transition-all"
+                                                    className="h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] w-full border-border/60 bg-background hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all active:scale-[0.98] shadow-sm"
                                                 >
                                                     Abort Sync
                                                 </Button>
@@ -345,7 +345,7 @@ export default function SettingsPage() {
                         <Button
                             variant="ghost"
                             onClick={logout}
-                            className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] text-muted-foreground hover:bg-red-500/5 hover:text-red-500 transition-all group border border-border/40 hover:border-red-500/20"
+                            className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-red-500/5 text-red-500 hover:bg-red-500/10 hover:text-red-600 transition-all group border border-red-500/10 hover:border-red-500/20"
                         >
                             <LogOut className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
                             Sign Out Instance

@@ -2,14 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
-import { Plus, Plug, Server, Activity, SlidersHorizontal, Power, PlugZap } from "lucide-react";
+import { Plus, Plug, Server, SlidersHorizontal, Power, PlugZap } from "lucide-react";
 import { MY_TUNNELS_QUERY } from "@/lib/graphql/tunnels";
 import { TunnelCard } from "@/components/tunnels/TunnelCard";
 import { CreateTunnelModal } from "@/components/tunnels/CreateTunnelModal";
 import type { Tunnel } from "@/types/tunnel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageLoading } from "@/components/shared/PageLoading";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyTerminal } from "@/components/shared/EmptyTerminal";
@@ -17,10 +16,12 @@ import { SearchInput } from "@/components/shared/SearchInput";
 import { FilterSelect } from "@/components/shared/FilterSelect";
 import { TokenRevealModal } from "@/components/tunnels/TokenRevealModal";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useTunnelStatusSync } from "@/hooks/useTunnelStatusSync"; // Import hook
 import { cn } from "@/lib/utils";
 
 interface RegeneratedToken {
     rawToken: string;
+    alias: string;
     agentCommand: string;
 }
 
@@ -45,19 +46,23 @@ export function TunnelsPageClient() {
 
     const { data, previousData, loading, error } = useQuery(MY_TUNNELS_QUERY, {
         variables,
-        pollInterval: 10000,
+        pollInterval: 30000,
         fetchPolicy: "cache-and-network",
     });
 
     const displayData = data ?? previousData;
     const tunnels: Tunnel[] = displayData?.myTunnels ?? [];
+    const wsToken = displayData?.websocketToken;
     const connectedCount = tunnels.filter((t) => t.isConnected).length;
+
+    // Initialize real-time status listener with ticket-based auth
+    useTunnelStatusSync(wsToken);
 
     const isFirstLoad = loading && !previousData && !data;
     const isRefetching = loading && !!displayData;
 
-    const handleTokenRegenerated = (rawToken: string, agentCommand: string) => {
-        setRegeneratedToken({ rawToken, agentCommand });
+    const handleTokenRegenerated = (rawToken: string, alias: string, agentCommand: string) => {
+        setRegeneratedToken({ rawToken, alias, agentCommand });
     };
 
     if (isFirstLoad) {
@@ -109,13 +114,13 @@ export function TunnelsPageClient() {
                     title="Credentials Re-Issued"
                     description="Your node security protocol has been reconfigured. Update your local agent with the new master key."
                     rawToken={regeneratedToken.rawToken}
-                    agentCommand={regeneratedToken.agentCommand}
+                    alias={regeneratedToken.alias}
                     onClose={() => setRegeneratedToken(null)}
                 />
             )}
 
             {/* ── Content Area ── */}
-            <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden min-h-[400px] relative">
+            <Card className="rounded-[40px] border-border bg-card shadow-sm overflow-hidden relative">
                 {/* Thin loading bar at top of card — only during refetch, not initial load */}
                 {isRefetching && (
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-border overflow-hidden z-20">
@@ -138,7 +143,7 @@ export function TunnelsPageClient() {
                     isFirstLoad && "opacity-60 pointer-events-none"
                 )}>
                     {tunnels.length === 0 && !loading && !error ? (
-                        <div className="p-20 text-center">
+                        <div className="p-16 text-center">
                             <EmptyTerminal
                                 title={debouncedSearch || statusFilter !== "all" ? "No Result Discovered" : "No Nodes Active"}
                                 description={debouncedSearch || statusFilter !== "all"
@@ -154,8 +159,8 @@ export function TunnelsPageClient() {
                             <TunnelCard
                                 key={tunnel.id}
                                 tunnel={tunnel}
-                                onTokenRegenerated={(rawToken, agentCommand) =>
-                                    handleTokenRegenerated(rawToken, agentCommand)
+                                onTokenRegenerated={(rawToken, alias, agentCommand) =>
+                                    handleTokenRegenerated(rawToken, alias, agentCommand)
                                 }
                             />
                         ))

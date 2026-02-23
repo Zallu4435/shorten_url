@@ -12,6 +12,7 @@ export const TUNNEL_FIELDS = gql`
     publicUrl
     isConnected
     lastConnectedAt
+    bandwidthBytes
     createdAt
     updatedAt
   }
@@ -25,6 +26,7 @@ export const MY_TUNNELS_QUERY = gql`
     myTunnels(search: $search, status: $status) {
       ...TunnelFields
     }
+    websocketToken
   }
 `;
 

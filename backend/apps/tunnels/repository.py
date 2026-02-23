@@ -4,6 +4,7 @@ All database operations for the Tunnel model.
 """
 
 import logging
+from django.db.models import F
 from django.utils import timezone
 from .models import Tunnel
 
@@ -50,7 +51,7 @@ def get_tunnel_by_token_hash(token_hash: str) -> Tunnel | None:
         return None
 
 
-from django.db.models import Q
+
 
 def get_user_tunnels(user, search: str | None = None, status: str | None = None) -> list[Tunnel]:
     """Return filtered tunnels owned by a user, newest first."""
@@ -100,3 +101,10 @@ def delete_tunnel(tunnel_id: str, user) -> bool:
 def alias_exists(alias: str) -> bool:
     """Return True if the alias is already taken."""
     return Tunnel.objects.filter(alias=alias).exists()
+
+
+def increment_bandwidth(tunnel_id: str, bytes_count: int) -> None:
+    """Atomic increment of the bandwidth counter (in bytes)."""
+    if bytes_count <= 0:
+        return
+    Tunnel.objects.filter(id=tunnel_id).update(bandwidth_bytes=F("bandwidth_bytes") + bytes_count)

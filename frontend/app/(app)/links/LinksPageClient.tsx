@@ -17,7 +17,6 @@ import { FilterSelect } from "@/components/shared/FilterSelect";
 import { PageLoading } from "@/components/shared/PageLoading";
 import { Pagination } from "@/components/shared/Pagination";
 import { PAGE_SIZE, LINK_FILTER_OPTIONS, LINK_SORT_OPTIONS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
 import type { ShortURL } from "@/types";
 
 

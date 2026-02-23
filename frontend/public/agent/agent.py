@@ -12,14 +12,7 @@ Config file (~/.tunnelrc):
       token = tk_...
       port = 3000
 
-Options:
-    --alias     Tunnel alias (required)
-    --token     Secret tunnel token (required if not in config)
-    --port      Local port to forward to (default: 3000)
-    --host      Local host (default: localhost)
-    --server    Backend WebSocket URL (default: ws://localhost:8000)
     --save      Save alias/token/port to ~/.tunnelrc for future use
-    --force     Not implemented yet (reserved for future use)
 """
 
 import argparse
@@ -37,6 +30,7 @@ from pathlib import Path
 
 # ─── Config ────────────────────────────────────────────────────────────────
 
+VERSION = "1.1.0"
 CONFIG_PATH = Path.home() / ".tunnelrc"
 
 # Reconnect strategy
@@ -144,7 +138,7 @@ ensure_dependencies()
 
 def print_banner(alias: str, public_url: str, local_url: str):
     print(f"\n{BOLD}{CYAN}  ┌────────────────────────────────────────────────────────────┐{RESET}")
-    print(f"{BOLD}{CYAN}  │{RESET}  {BOLD}MATRIX TUNNEL AGENT  v1.0.0{RESET}                          {BOLD}{CYAN}│{RESET}")
+    print(f"{BOLD}{CYAN}  │{RESET}  {BOLD}MATRIX TUNNEL AGENT  v{VERSION}{RESET}                          {BOLD}{CYAN}│{RESET}")
     print(f"{BOLD}{CYAN}  └────────────────────────────────────────────────────────────┘{RESET}\n")
 
     print(f"  {BOLD}{GRAY}NODE ALIAS{RESET}   : {BOLD}{WHITE}{alias}{RESET}")
@@ -279,7 +273,7 @@ def forward_to_local(method: str, path: str, headers: dict, body: bytes, local_u
         }
 
     except requests.exceptions.ConnectionError:
-        error_msg = f"Local server at {local_url} is not responding. Is your app running?"
+        error_msg = f"LOCAL_EVICTION: Target {local_url} severed. Is the bridge service running?"
         return {
             "status": 503,
             "headers": {"Content-Type": "text/plain"},
@@ -287,7 +281,7 @@ def forward_to_local(method: str, path: str, headers: dict, body: bytes, local_u
             "latency_ms": 0,
         }
     except requests.exceptions.Timeout:
-        error_msg = "Local server timed out (25s)."
+        error_msg = "UPSTREAM_TIMEOUT: Local service failed to respond within 25s boundary."
         return {
             "status": 504,
             "headers": {"Content-Type": "text/plain"},
@@ -316,7 +310,10 @@ async def run_agent(alias: str, token: str, local_url: str, ws_url: str, args_ve
         try:
             async with websockets.connect(
                 ws_url,
-                additional_headers={"Authorization": f"Bearer {token}"},
+                additional_headers={
+                    "Authorization": f"Bearer {token}",
+                    "X-Agent-Version": VERSION
+                },
                 ping_interval=20,
                 ping_timeout=30,
             ) as ws:
@@ -334,7 +331,7 @@ async def run_agent(alias: str, token: str, local_url: str, ws_url: str, args_ve
                     # Server sent a disconnect reason (e.g. bad token, alias taken)
                     if msg_type == "disconnect":
                         reason = msg.get("reason", "Unknown reason.")
-                        print(f"\n  {RED}❌ {reason}{RESET}")
+                        print(f"\n  {RED}❌ {reason}{RESET}\n\n")
                         sys.exit(1)
 
                     # Server is forwarding an HTTP request to us
@@ -398,7 +395,6 @@ def main():
     parser.add_argument("--token",  type=str, help="Secret tunnel token")
     parser.add_argument("--port",   type=int, help="Local port to forward to (default: 3000)")
     parser.add_argument("--host",   type=str, default="localhost", help="Local host (default: localhost)")
-    parser.add_argument("--server", type=str, default="ws://localhost:8000", help="Backend WS URL")
     parser.add_argument("--save",   action="store_true", help="Save config to ~/.tunnelrc")
     parser.add_argument("--verbose", action="store_true", help="Show all logs (including static assets)")
     args = parser.parse_args()

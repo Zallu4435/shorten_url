@@ -12,6 +12,7 @@ import {
     Scan,
     Trash2,
     Loader2,
+    ShieldAlert
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -38,6 +39,7 @@ import { UPDATE_SHORT_URL_MUTATION, DELETE_SHORT_URL_MUTATION } from "@/lib/grap
 import { MY_URLS_QUERY } from "@/lib/graphql/queries";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { formatNumber, timeAgo, truncateUrl, cn } from "@/lib/utils";
+import { TechnicalIndicator } from "@/components/shared/TechnicalIndicator";
 import type { ShortURL } from "@/types";
 
 interface LinkCardProps {
@@ -189,7 +191,7 @@ export function LinkCard({ url }: LinkCardProps) {
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-border shadow-2xl">
+                        <DropdownMenuContent align="end" className="w-56 p-2 rounded-[24px] border-border shadow-2xl bg-card/95 backdrop-blur-xl">
                             <DropdownMenuItem
                                 asChild={url.isActive}
                                 className={cn(
@@ -251,38 +253,43 @@ export function LinkCard({ url }: LinkCardProps) {
 
             {/* Termination Dialogue */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent className="sm:max-w-md rounded-3xl border-border bg-popover shadow-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold tracking-tight">Terminate Endpoint?</DialogTitle>
-                        <DialogDescription className="text-sm font-medium text-muted-foreground mt-2 leading-relaxed">
-                            This will permanently purge the node <span className="font-mono text-foreground font-bold bg-muted px-1.5 py-0.5 rounded">/{url.slug}</span> and all associated analytical data. This action is irreversible.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="gap-3 mt-6">
-                        <Button
-                            variant="ghost"
-                            className="rounded-xl px-6 font-bold"
-                            onClick={() => setShowDeleteDialog(false)}
-                            disabled={deleting}
-                        >
-                            Retain Node
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            className="rounded-xl px-6 font-bold shadow-lg shadow-red-500/20"
-                            onClick={handleDelete}
-                            disabled={deleting}
-                        >
-                            {deleting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Terminating...
-                                </>
-                            ) : (
-                                "Confirm Termination"
-                            )}
-                        </Button>
-                    </DialogFooter>
+                <DialogContent className="sm:max-w-md rounded-[32px] border-red-500/20 bg-card shadow-2xl p-0 overflow-hidden">
+                    <div className="p-8 space-y-6">
+                        <DialogHeader className="space-y-4">
+                            <TechnicalIndicator label="Terminal Operation" icon={ShieldAlert} color="red" className="mb-0" />
+                            <DialogTitle className="text-2xl font-black tracking-tighter text-foreground leading-none">
+                                Terminate Endpoint?
+                            </DialogTitle>
+                            <DialogDescription className="text-sm font-bold text-muted-foreground leading-relaxed">
+                                This will permanently purge the node <span className="font-mono text-foreground font-bold bg-muted px-1.5 py-0.5 rounded">/{url.slug}</span> and all associated analytical data. This action <span className="text-red-500 underline underline-offset-2">is irreversible</span>.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="flex-col sm:flex-col gap-3">
+                            <Button
+                                variant="destructive"
+                                className="h-16 rounded-2xl font-black uppercase tracking-widest text-xs w-full shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all active:scale-[0.98]"
+                                onClick={handleDelete}
+                                disabled={deleting}
+                            >
+                                {deleting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Terminating...
+                                    </>
+                                ) : (
+                                    "Confirm Termination"
+                                )}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                type="button"
+                                onClick={() => setShowDeleteDialog(false)}
+                                className="h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] w-full border-border/60 bg-background hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all focus-visible:ring-0 active:scale-[0.98] shadow-sm"
+                            >
+                                Retain Node
+                            </Button>
+                        </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
         </>

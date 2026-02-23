@@ -85,6 +85,10 @@ class Tunnel(models.Model):
         blank=True,
         help_text="When the agent last successfully connected.",
     )
+    bandwidth_bytes = models.BigIntegerField(
+        default=0,
+        help_text="Total data transferred through this tunnel in bytes.",
+    )
 
     # ─── Timestamps ───────────────────────────────────────
     created_at = models.DateTimeField(auto_now_add=True)

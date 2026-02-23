@@ -10,6 +10,7 @@ export interface Tunnel {
     isActive: boolean;
     publicUrl: string;
     isConnected: boolean;
+    bandwidthBytes: number;
     lastConnectedAt?: string;
     createdAt: string;
     updatedAt: string;

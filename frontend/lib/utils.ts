@@ -90,3 +90,13 @@ export function buildShortUrl(slug: string): string {
     process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   return `${base}/${slug}`;
 }
+
+// Format bytes to human readable: 1024 → "1.0 KB"
+export function formatBytes(bytes: number, decimals = 1): string {
+  if (!bytes || bytes === 0) return "0 B";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+}

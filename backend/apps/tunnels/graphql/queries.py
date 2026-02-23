@@ -24,6 +24,15 @@ class TunnelQuery(graphene.ObjectType):
         description="Get a single tunnel by ID (must be owner).",
     )
 
+    websocket_token = graphene.String(
+        description="Get a short-lived ticket for real-time WebSocket connection."
+    )
+
+    @login_required
+    def resolve_websocket_token(root, info):
+        from apps.users import services
+        return services.generate_websocket_token(info.context.user)
+
     @login_required
     def resolve_my_tunnels(root, info, search=None, status=None):
         return repository.get_user_tunnels(info.context.user, search=search, status=status)

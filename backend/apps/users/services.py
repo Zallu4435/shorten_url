@@ -325,6 +325,36 @@ def generate_access_token(user: CustomUser) -> str:
     return token
 
 
+def generate_websocket_token(user: CustomUser) -> str:
+    """
+    Generate a short-lived JWT for WebSocket authentication.
+    Expiry: 1 minute (ticket-style).
+    """
+    now = timezone.now()
+    # ─── Stability Optimization ───
+    # We round the 'issued at' (iat) and 'expiry' (exp) to the nearest 30s boundary.
+    # This ensures that the generated JWT remains identical across rapid GraphQL polls
+    # (usually every 10-30s), preventing the frontend's WebSocket from reconnecting
+    # due to a token value change.
+    now_ts = int(now.timestamp())
+    stable_ts = (now_ts // 30) * 30
+    expiry_ts = stable_ts + 60  # 1 min window for handshake
+
+    payload = {
+        "user_id": str(user.id),
+        "type": "ws_auth",
+        "iat": stable_ts,
+        "exp": expiry_ts,
+    }
+
+    token = jwt.encode(
+        payload,
+        settings.JWT_SECRET_KEY,
+        algorithm=settings.JWT_ALGORITHM,
+    )
+    return token
+
+
 def generate_and_store_refresh_token(user: CustomUser) -> str:
     """
     Generate a cryptographically random refresh token, store its hash in DB,

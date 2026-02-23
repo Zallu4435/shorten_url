@@ -8,7 +8,7 @@ Tunnel GraphQL Mutations:
 
 import graphene
 from shared.decorators import login_required
-from django.conf import settings
+
 
 from apps.tunnels.graphql.types import (
     TunnelType,
