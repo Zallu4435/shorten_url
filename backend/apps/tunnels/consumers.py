@@ -356,12 +356,16 @@ class TunnelStatusConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         if hasattr(self, 'user_id'):
             await self.channel_layer.group_discard(f"tunnel_status_{self.user_id}", self.channel_name)
-
     async def status_update(self, event):
         """
         Handler for messages from the 'tunnel_status_updates' group.
         Relays the update to the frontend.
         """
+        await self.send(text_data=json.dumps({
+            "type": "status_update",
+            "alias": event["alias"],
+            "tunnel_id": event["tunnel_id"],
+            "status": event["status"],
         }))
 
 
