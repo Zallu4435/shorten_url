@@ -14,6 +14,7 @@ from graphene_django.views import GraphQLView
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.links.views import ShortURLRedirectView, VerifyURLPasswordView, QRCodeView
+from apps.tunnels.views import TunnelProxyView
 
 urlpatterns = [
     # Django Admin
@@ -40,6 +41,14 @@ urlpatterns = [
         r"^qr/(?P<slug>[a-zA-Z0-9_\-]{3,50})$",
         QRCodeView.as_view(),
         name="url-qr-code",
+    ),
+
+    # ─── Tunnel Proxy — forward requests to agent over WebSocket ───
+    # Must be declared BEFORE the slug catch-all
+    re_path(
+        r"^t/(?P<alias>[a-z0-9-]{3,30})/(?P<subpath>.*)$",
+        TunnelProxyView.as_view(),
+        name="tunnel-proxy",
     ),
 
     # ─── Short URL Redirect — must be LAST (catch-all for slugs) ───

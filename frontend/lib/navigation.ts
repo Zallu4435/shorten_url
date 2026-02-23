@@ -7,6 +7,7 @@ import {
     Users,
     ExternalLink,
     Plus,
+    Plug,
 } from "lucide-react";
 
 export interface NavItem {
@@ -35,6 +36,11 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
         label: "Analytics",
         href: "/analytics",
         icon: TrendingUp,
+    },
+    {
+        label: "Tunnels",
+        href: "/tunnels",
+        icon: Plug,
     },
     {
         label: "Settings",

@@ -25,12 +25,13 @@ load_dotenv(BASE_DIR / ".env")
 # ─────────────────────────────────────────────
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-default-key-change-in-production")
 DEBUG = os.environ.get("DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
+ALLOWED_HOSTS = ["*"]  # Allow all hosts for local tunnel support (including subdomains)
 
 # ─────────────────────────────────────────────
 # Installed Applications
 # ─────────────────────────────────────────────
 DJANGO_APPS = [
+    "daphne",              # ASGI server — must be before django.contrib.staticfiles
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -40,6 +41,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "channels",            # WebSocket support
     "graphene_django",
     "corsheaders",
 ]
@@ -50,6 +52,7 @@ LOCAL_APPS = [
     "apps.analytics",
     "apps.admin_panel",
     "apps.ai_integration",
+    "apps.tunnels",        # WebSocket tunnel feature
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -59,6 +62,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ─────────────────────────────────────────────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",       # Must be first
+    "apps.tunnels.middleware.TunnelAssetMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",  # Static files
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -95,9 +99,29 @@ TEMPLATES = [
 ]
 
 # ─────────────────────────────────────────────
-# WSGI / ASGI
+# ASGI (WebSocket + HTTP via Django Channels)
 # ─────────────────────────────────────────────
+ASGI_APPLICATION = "config.asgi.application"
+
+# Keep WSGI for fallback/compatibility
 WSGI_APPLICATION = "config.wsgi.application"
+
+# ─────────────────────────────────────────────
+# Channel Layers
+# ─────────────────────────────────────────────
+# In-memory layer for development (no Redis needed)
+# Switch to RedisChannelLayer in production:
+#   CHANNEL_LAYERS = {
+#       "default": {
+#           "BACKEND": "channels_redis.core.RedisChannelLayer",
+#           "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+#       }
+#   }
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 # ─────────────────────────────────────────────
 # Database — Neon PostgreSQL
@@ -235,6 +259,7 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 # ─────────────────────────────────────────────
 MAX_URLS_PER_HOUR = int(os.environ.get("MAX_URLS_PER_HOUR", 50))
 MAX_URLS_PER_DAY = int(os.environ.get("MAX_URLS_PER_DAY", 200))
+MAX_TUNNELS_PER_USER = int(os.environ.get("MAX_TUNNELS_PER_USER", 5))
 
 # CSRF — Trusted Origins for Cookies
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS

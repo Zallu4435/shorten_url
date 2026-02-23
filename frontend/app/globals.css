@@ -217,11 +217,346 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────
-   Loading bar animation — used by card-scoped refetch indicator
-   ───────────────────────────────────────────────────────── */
 @keyframes slide {
   0%   { transform: translateX(-100%); }
   50%  { transform: translateX(0%); }
   100% { transform: translateX(100%); }
+}
+
+/* ─────────────────────────────────────────────────────────
+   Tunnels Feature
+   ───────────────────────────────────────────────────────── */
+@layer utilities {
+  /* ── Page ─────────────────────────────────────────────── */
+  .tunnels-page {
+    @apply flex flex-col gap-6 p-6 max-w-6xl mx-auto w-full;
+  }
+
+  .page-header {
+    @apply flex items-start justify-between gap-4 flex-wrap;
+  }
+
+  .page-title {
+    @apply flex items-center gap-2 text-2xl font-bold text-foreground;
+  }
+
+  .page-title-icon {
+    @apply text-primary;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-muted-foreground mt-1;
+  }
+
+  /* ── Stats bar ────────────────────────────────────────── */
+  .tunnels-stats {
+    @apply flex gap-4;
+  }
+
+  .tunnels-stat {
+    @apply flex flex-col items-center bg-card border border-border rounded-xl px-6 py-3;
+  }
+
+  .tunnels-stat__value {
+    @apply text-2xl font-bold text-foreground;
+  }
+
+  .tunnels-stat__value--connected {
+    @apply text-emerald-500;
+  }
+
+  .tunnels-stat__label {
+    @apply text-xs text-muted-foreground uppercase tracking-wider;
+  }
+
+  /* ── Grid ─────────────────────────────────────────────── */
+  .tunnels-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  /* ── Card ─────────────────────────────────────────────── */
+  .tunnel-card {
+    @apply bg-card border border-border rounded-2xl p-5 flex flex-col gap-3
+           hover:border-primary/40 transition-all duration-200;
+  }
+
+  .tunnel-card-header {
+    @apply flex items-center justify-between;
+  }
+
+  .tunnel-status {
+    @apply flex items-center gap-1.5;
+  }
+
+  .status-dot {
+    @apply w-2.5 h-2.5 rounded-full;
+  }
+
+  .status-dot--connected {
+    @apply bg-emerald-500 shadow-[0_0_8px_2px] shadow-emerald-500/50;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .status-dot--offline {
+    @apply bg-muted-foreground/50;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%  { opacity: 0.5; }
+  }
+
+  .status-label {
+    @apply text-xs font-medium;
+  }
+
+  .status-label--connected {
+    @apply text-emerald-500;
+  }
+
+  .status-label--offline {
+    @apply text-muted-foreground;
+  }
+
+  .tunnel-icon-wrap {
+    @apply p-1.5 rounded-lg bg-muted;
+  }
+
+  .tunnel-icon {
+    @apply w-4 h-4;
+  }
+
+  .tunnel-icon--connected {
+    @apply text-emerald-500;
+  }
+
+  .tunnel-icon--offline {
+    @apply text-muted-foreground;
+  }
+
+  .tunnel-alias {
+    @apply text-lg font-semibold text-foreground;
+  }
+
+  .tunnel-url-row {
+    @apply flex items-center gap-1.5;
+  }
+
+  .tunnel-url-icon {
+    @apply text-muted-foreground flex-shrink-0;
+  }
+
+  .tunnel-url-text {
+    @apply text-xs text-primary truncate;
+  }
+
+  .tunnel-port-badge {
+    @apply text-xs text-muted-foreground bg-muted rounded-md px-2 py-0.5 w-fit;
+  }
+
+  .tunnel-meta {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .tunnel-actions {
+    @apply flex items-center gap-2 mt-1;
+  }
+
+  .tunnel-btn {
+    @apply flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all duration-150 cursor-pointer;
+  }
+
+  .tunnel-btn--copy {
+    @apply border-border bg-muted text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary;
+  }
+
+  .tunnel-btn--regen {
+    @apply border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+
+  .tunnel-btn--delete {
+    @apply border-transparent bg-transparent text-muted-foreground hover:text-destructive hover:bg-destructive/10;
+  }
+
+  .tunnel-btn--danger {
+    @apply border-destructive bg-destructive/10 text-destructive hover:bg-destructive hover:text-white;
+  }
+
+  .tunnel-btn--ghost {
+    @apply border-border bg-transparent text-muted-foreground hover:bg-muted;
+  }
+
+  .tunnel-delete-confirm {
+    @apply flex items-center gap-1.5;
+  }
+
+  .tunnel-delete-confirm__text {
+    @apply text-xs text-destructive;
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Empty / Loading / Error states ─────────────────────── */
+  .tunnels-empty {
+    @apply flex flex-col items-center justify-center gap-4 py-24 text-center;
+  }
+
+  .tunnels-empty__icon {
+    @apply text-muted-foreground/30;
+  }
+
+  .tunnels-loading {
+    @apply flex flex-col items-center gap-3 py-24 text-muted-foreground;
+  }
+
+  .spinner {
+    @apply w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .tunnels-error {
+    @apply bg-destructive/10 border border-destructive/30 text-destructive text-sm rounded-xl p-4 text-center;
+  }
+
+  /* ── Token banner (after regeneration) ───────────────────── */
+  .token-banner {
+    @apply relative flex flex-col gap-2 bg-amber-500/10 border border-amber-500/30
+           rounded-xl p-4 text-sm;
+  }
+
+  .token-banner__content,
+  .token-banner__cmd {
+    @apply flex items-center gap-2 flex-wrap;
+  }
+
+  .token-banner__token,
+  .token-banner__code {
+    @apply font-mono text-xs bg-muted px-2 py-0.5 rounded break-all;
+  }
+
+  .token-banner__close {
+    @apply absolute top-3 right-3 text-muted-foreground hover:text-foreground cursor-pointer;
+  }
+
+  /* ── Modal ────────────────────────────────────────────── */
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center
+           bg-black/60 backdrop-blur-sm p-4;
+  }
+
+  .modal {
+    @apply bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl;
+  }
+
+  .modal-header {
+    @apply flex items-center justify-between px-6 py-4 border-b border-border;
+  }
+
+  .modal-title {
+    @apply text-lg font-semibold text-foreground;
+  }
+
+  .modal-close {
+    @apply text-muted-foreground hover:text-foreground transition-colors cursor-pointer;
+  }
+
+  .modal-body {
+    @apply flex flex-col gap-4 p-6;
+  }
+
+  .modal-actions {
+    @apply flex justify-end gap-2 pt-2;
+  }
+
+  /* ── Form ─────────────────────────────────────────────── */
+  .form-group {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .form-label {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .form-optional {
+    @apply text-muted-foreground font-normal text-xs;
+  }
+
+  .form-input {
+    @apply bg-background border border-border rounded-lg px-3 py-2 text-sm
+           text-foreground placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary
+           transition-all duration-150;
+  }
+
+  .alias-input-wrap {
+    @apply flex items-center border border-border rounded-lg overflow-hidden
+           focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary;
+  }
+
+  .alias-prefix {
+    @apply text-xs text-muted-foreground bg-muted px-3 py-2 border-r border-border whitespace-nowrap;
+  }
+
+  .alias-input {
+    @apply border-none ring-0 focus:ring-0 rounded-none flex-1;
+  }
+
+  .form-hint {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .form-error {
+    @apply text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2;
+  }
+
+  /* ── Buttons ──────────────────────────────────────────── */
+  .btn {
+    @apply flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+           transition-all duration-150 cursor-pointer;
+  }
+
+  .btn--primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn--ghost {
+    @apply border border-border bg-transparent text-muted-foreground hover:bg-muted;
+  }
+
+  /* ── Token reveal ─────────────────────────────────────── */
+  .token-warning {
+    @apply bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400
+           text-sm rounded-lg px-3 py-2.5;
+  }
+
+  .copy-row {
+    @apply flex items-center gap-2 bg-muted border border-border rounded-lg px-3 py-2;
+  }
+
+  .copy-value {
+    @apply font-mono text-xs text-foreground flex-1 break-all;
+  }
+
+  .copy-row--code {
+    @apply bg-zinc-900 border-zinc-700;
+  }
+
+  .copy-value--code {
+    @apply text-emerald-400;
+  }
+
+  .copy-btn {
+    @apply text-muted-foreground hover:text-foreground cursor-pointer flex-shrink-0 transition-colors;
+  }
+
+  .agent-download-link {
+    @apply flex items-center gap-1.5 text-xs text-primary hover:underline w-fit;
+  }
 }

@@ -9,6 +9,7 @@ Current:
   ✅ Analytics — getAnalytics, clickHistory, myAnalytics
   ✅ Admin     — platformStats, allUsers, userDetail, allUrls + 10 admin mutations
   ✅ AI        — suggestSlugs, generateUrlMetadata, suggestRedirectRules (Gemini)
+  ✅ Tunnels   — myTunnels, getTunnel, createTunnel, deleteTunnel, regenerateTunnelToken
 """
 
 import graphene
@@ -21,6 +22,8 @@ from apps.analytics.graphql.queries import AnalyticsQuery
 from apps.admin_panel.graphql.queries import AdminQuery
 from apps.admin_panel.graphql.mutations import AdminMutation
 from apps.ai_integration.graphql.queries import AIQuery
+from apps.tunnels.graphql.queries import TunnelQuery
+from apps.tunnels.graphql.mutations import TunnelMutation
 
 
 class Query(
@@ -29,6 +32,7 @@ class Query(
     AnalyticsQuery,
     AdminQuery,
     AIQuery,
+    TunnelQuery,
     graphene.ObjectType,
 ):
     pass
@@ -38,6 +42,7 @@ class Mutation(
     UserMutation,
     URLMutation,
     AdminMutation,
+    TunnelMutation,
     graphene.ObjectType,
 ):
     pass

@@ -11,6 +11,7 @@ interface EmptyTerminalProps {
     icon?: LucideIcon;
     actionLabel?: string;
     actionHref?: string;
+    onClick?: () => void;
     className?: string;
 }
 
@@ -20,6 +21,7 @@ export function EmptyTerminal({
     icon: Icon = Terminal,
     actionLabel,
     actionHref,
+    onClick,
     className,
 }: EmptyTerminalProps) {
     return (
@@ -41,11 +43,19 @@ export function EmptyTerminal({
                 {description}
             </p>
 
-            {actionLabel && actionHref && (
-                <Button asChild className="rounded-2xl h-12 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20 transition-all border border-primary/20 active:scale-[0.98]">
-                    <Link href={actionHref}>
-                        {actionLabel}
-                    </Link>
+            {actionLabel && (actionHref || onClick) && (
+                <Button
+                    asChild={!!actionHref}
+                    onClick={onClick}
+                    className="rounded-2xl h-12 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20 transition-all border border-primary/20 active:scale-[0.98]"
+                >
+                    {actionHref ? (
+                        <Link href={actionHref}>
+                            {actionLabel}
+                        </Link>
+                    ) : (
+                        actionLabel
+                    )}
                 </Button>
             )}
         </div>
